@@ -8,6 +8,7 @@ var bannedItem = ["cataclysm:ignitium_elytra_chestplate","minecraft:elytra","cre
 var blackListEntity = ["man_of_many_planes:scarlet_biplane","man_of_many_planes:economy_plane","minecraft:boat","minecraft:chest_boat",
 "immersive_aircraft:airship","immersive_aircraft:cargo_airship","immersive_aircraft:biplane","immersive_aircraft:gyrodyne",
 "immersive_aircraft:quadrocopter","immersive_aircraft:bamboo_hopper","immersive_aircraft:warship"]; //实体黑名单
+var bannedEffects = ["farm_and_charm:grandmas_blessing","farm_and_charm:farmers_blessing"];
 //END
 
 var rightClickCooldown = false;
@@ -73,7 +74,7 @@ BlockEvents.leftClicked(event => {
 })
 
 EntityEvents.death(event => {  
-    const {entity ,source ,server} = event;
+    const {entity ,source ,server ,level} = event;
     if (entity.isPlayer()) {  //作战中玩家死亡
         var playername = String(entity.name.string);
         var execAfterPlayerDead = function (ObjName,TagName) {
@@ -126,17 +127,55 @@ EntityEvents.death(event => {
         }
     }
 
-    if (source.actual.type != "minecraft:player") return;  //不是玩家所杀返回
+    var fieldAABB = function (ID) {
+        switch (ID) {
+            case 0:
+                return AABB.of(-64,-5,30,-120,-36,-24);
+            case 1:
+                return AABB.of(-119,-36,-197,-63,-4,-142);
+        }
+    }
 
     var generateLootChset = function (x,y,z,ticketCount,bevelCount) {
         server.runCommandSilent(`/setblock ${x} ${y} ${z} minecraft:chest{Items:[{Slot:0b,id:"simplehats:haticon",Count:${ticketCount}b},{Slot:1b,id:"numismatics:bevel",Count:${bevelCount}b}]}`);
         server.runCommandSilent(`/execute positioned ${x} ${y} ${z} run lootr custom`);
     }
 
+    var shouldGenerateLoot = function () {
+        var playername = String(source.player.username);
+        var allFightCount = JsonIO.readJson(BossFightFile).getAsJsonObject();
+        var signalFightCount = allFightCount.get("SignalBoss").asJsonObject;
+        if (signalFightCount.get(playername) != null) {
+            var detailSFC = signalFightCount.get(playername).asInt;
+            if (detailSFC >= maxSignalCfg) {
+                source.player.tell(Component.red(`今日你已挑战成功\u00a7e${detailSFC + 1}\u00a7c次,奖励次数已用尽`));
+                return false;
+            } else if (detailSFC < maxSignalCfg) {
+                source.player.tell(`\u00a7b今日你已挑战成功\u00a7e${detailSFC + 1}\u00a7b次,还有\u00a7e${maxSignalCfg - detailSFC - 1}\u00a7b次奖励次数`);
+                return true;
+            }
+        } else {
+            source.player.tell(`\u00a7b今日你已挑战成功\u00a7e1\u00a7b次,还有\u00a7e${maxSignalCfg - 1}\u00a7b次奖励次数`);
+            return true;
+        }
+    }
+
     if (entity.persistentData.get("battleType").getAsString().match("Signal")) {  //击杀单人tag
 
         var execAfterWinning = function (x,y,z,ticketCount,bevelCount,ObjName,TagName,ID) {
-            var playername = String(source.player.username)
+            var Obj = server.scoreboard.getObjective(ObjName);
+            var playername = "";
+            level.getEntitiesWithin(fieldAABB(ID)).forEach(Entity => {
+                if (Entity.type != "minecraft:player") return;
+                if (server.scoreboard.hasPlayerScore(String(Entity.username),Obj)) {
+                    playername = String(Entity.username);
+                }
+            })
+
+            if (shouldGenerateLoot()) {
+                generateLootChset(x,y,z,ticketCount,bevelCount);  //生成箱子
+            }
+
             if (JsonIO.readJson(BossFightFile).isJsonNull()){
                 JsonIO.write(BossFightFile,BossFightFileInit);
             }
@@ -152,7 +191,9 @@ EntityEvents.death(event => {
                 JsonIO.write(BossFightFile,allFightCount);
             }
             source.player.setInvulnerable(true);
-            generateLootChset(x,y,z,ticketCount,bevelCount);  //生成箱子
+
+            IIIStageIgnis.delete(String(entity.stringUuid));
+
             server.runCommandSilent(`/title ${playername} title {"text":"半分后回到大厅,请勿退出服务器","color":"yellow","bold":"true"}`);
             
             server.scheduleInTicks(600,() => {
@@ -266,6 +307,11 @@ ServerEvents.tick(event => {
             server.runCommandSilent(`/kill @e[type=${blackListEntity[index]}]`);
         } //定时删除黑名单实体
     }
+    if (server.tickCount % 20 == 0) {
+        for (var j = 0 ;j <= bannedEffects.length - 1 ;j++) {
+            server.runCommandSilent(`/effect clear @a ${bannedEffects[j]}`);
+        } //定时清除黑名单效果
+    }
 })
 
 PlayerEvents.loggedOut(event => {
@@ -299,6 +345,7 @@ PlayerEvents.loggedOut(event => {
 })
 
 BlockEvents.rightClicked("minecraft:oak_button", event => {
+    var strButtonPos = ["-92 -46 -26","-92 -46 -199"]
     const {hand ,player ,block ,server} = event;
     if (hand != "MAIN_HAND") return;
     var playername = String(player.username);
@@ -312,51 +359,56 @@ BlockEvents.rightClicked("minecraft:oak_button", event => {
         }) //遍历检测违禁品
         if (hasBannedItem) return;
 
-        var checkAndTpIntoField = function (tpIntoFieldFun) {
-            var allFightCount = JsonIO.readJson(BossFightFile).getAsJsonObject();
-            var signalFightCount = allFightCount.get("SignalBoss").asJsonObject;
-            if (signalFightCount.get(playername) != null) {
-                var detailSFC = signalFightCount.get(playername).asInt;
-                if (detailSFC >= maxSignalCfg) {
-                    player.tell(Component.red(`今日单人挑战次数已用尽`));
-                    return;
-                } else if (detailSFC < maxSignalCfg) {
-                    player.tell(`\u00a7b今日你已挑战\u00a7e${detailSFC}\u00a7b次,还有\u00a7e${maxSignalCfg - detailSFC}\u00a7b次机会`);
-                    tpIntoFieldFun();
-                }
-            } else {
-                player.tell(`\u00a7b今日你已挑战\u00a7e0\u00a7b次,还有\u00a7e${maxSignalCfg}\u00a7b次机会`);
-                tpIntoFieldFun();
+        var resetField = function (ID) {
+            switch (ID) {
+                case 0:
+                    server.runCommandSilent(`/setblock -92 -33 3 alexscaves:hazmat_warning_block`);
+                    server.runCommandSilent(`/setblock -90 -35 3 air`);
+                    server.scheduleInTicks(1,() => {
+                        server.runCommandSilent(`/setblock -90 -35 3 minecraft:chest{Items:[{Slot:0b,id:"minecraft:wooden_pickaxe",tag:{Damage:0,CanDestroy:["alexscaves:hazmat_warning_block"]},Count:1b}]}`);
+                    })
+                    break;
+                case 1:
+                    server.runCommandSilent(`/setblock -92 -33 -170 alexscaves:hazmat_warning_block`);
+                    server.runCommandSilent(`/setblock -90 -35 -170 air`);
+                    server.scheduleInTicks(1,() => {
+                        server.runCommandSilent(`/setblock -90 -35 -170 minecraft:chest{Items:[{Slot:0b,id:"minecraft:wooden_pickaxe",tag:{Damage:0,CanDestroy:["alexscaves:hazmat_warning_block"]},Count:1b}]}`);
+                    })
+                    break;
             }
         }
 
         var TpIntoFieldFuns = function (ID) {
-            return function () {
-                switch (ID) {
-                    case 0:
-                        server.runCommandSilent(`/execute if entity @e[x=-64,y=-5,z=30,dx=-55,dy=-31,dz=-54,type=minecraft:player] positioned -92 -46 -26 run title @a[distance=..5] title "已有玩家在挑战"`);
-                        server.runCommandSilent(`/execute unless entity @e[x=-64,y=-5,z=30,dx=-55,dy=-31,dz=-54,type=minecraft:player] positioned -92 -46 -26 run tag @p add SignalMember`);
-                        server.runCommandSilent(`/execute unless entity @e[x=-64,y=-5,z=30,dx=-55,dy=-31,dz=-54,type=minecraft:player] positioned -92 -46 -26 run tp @p -70.60 -35.00 3.44`);
+            switch (ID) {
+                case 0:
+                    if (server.runCommandSilent(`/execute if entity @a[x=-64,y=-5,z=30,dx=-55,dy=-31,dz=-54]`) != 0) {
+                        server.runCommandSilent(`/execute positioned ${strButtonPos[0]} run title @a[distance=..5] title "已有玩家在挑战"`);
+                    } else {
+                        server.runCommandSilent(`/execute positioned ${strButtonPos[0]} run tag @p add SignalMember`);
+                        server.runCommandSilent(`/execute positioned ${strButtonPos[0]} run tp @p -70.60 -35.00 3.44`);
                         server.runCommandSilent(`/scoreboard objectives add SingalActive dummy "SingalActive"`);
-                        break;
-                    case 1:
-                        server.runCommandSilent(`/execute if entity @e[x=-119,y=-36,z=-197,dx=55,dy=32,dz=54,type=minecraft:player] positioned -92 -46 -199 run title @a[distance=..5] title "已有玩家在挑战"`);
-                        server.runCommandSilent(`/execute unless entity @e[x=-119,y=-36,z=-197,dx=55,dy=32,dz=54,type=minecraft:player] positioned -92 -46 -199 run tag @p add SignalMember1`);
-                        server.runCommandSilent(`/execute unless entity @e[x=-119,y=-36,z=-197,dx=55,dy=32,dz=54,type=minecraft:player] positioned -92 -46 -199 run tp @p -68 -35 -170`);
+                    }
+                    break;
+                case 1:
+                    if (server.runCommandSilent(`/execute if entity @a[x=-119,y=-36,z=-197,dx=55,dy=32,dz=54]`) != 0) {
+                        server.runCommandSilent(`/execute positioned ${strButtonPos[1]} run title @a[distance=..5] title "已有玩家在挑战"`)
+                    } else {
+                        server.runCommandSilent(`/execute positioned ${strButtonPos[1]} run tag @p add SignalMember1`);
+                        server.runCommandSilent(`/execute positioned ${strButtonPos[1]} run tp @p -68 -35 -170`);
                         server.runCommandSilent(`/scoreboard objectives add SingalActive1 dummy "SingalActive1"`);
-                        break;
-                    default:
-                        break;
-                }
+                    }
+                    break;
+                default:
+                    break;
             }
         }
 
         if (block.pos.equals(BlockPos(-92,-46,-25))) {
-            var TpIntoField = TpIntoFieldFuns(0);
-            checkAndTpIntoField(TpIntoField);
+            TpIntoFieldFuns(0);
+            resetField(0);
         } else if (block.pos.equals(BlockPos(-92,-46,-198))) {
-            var TpIntoField = TpIntoFieldFuns(1);
-            checkAndTpIntoField(TpIntoField);
+            TpIntoFieldFuns(1);
+            resetField(1);
         }
     }
 })
@@ -412,6 +464,7 @@ EntityEvents.hurt(event => {
             var newDamage = damage * 1.4;
             var realDamage = damage * 0.05;
             var playerUUid = String(player.stringUuid);
+            var playerName = String(player.username);
             if (newDamage + realDamage < currentPlayerHp) {
                 player.setHealth(currentPlayerHp - realDamage);
                 server.runCommandSilent(`/damage ${playerName} ${newDamage}`);
@@ -436,4 +489,13 @@ EntityEvents.hurt(event => {
         })
     }
 })
+
+//更新日志
+//1.0.0:完成初步框架功能,能够正常运行
+//1.1.0:模块化高频重复部分
+//1.2.0:1.修复bug
+//      (1)修复了焰魔被陷阱击杀无法继续执行的bug
+//      (2)修复偶现场地未被恢复的bug
+//      2.新增抹除特定药水效果功能
+//      3.更改 "次数用尽后不能再打" 为 "次数用尽后不能再获得奖励"
 

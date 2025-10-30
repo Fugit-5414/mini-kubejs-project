@@ -40,17 +40,17 @@ var defaultChargeBoxNBT = `Items:[{Slot:1b,id:"minecraft:iron_pickaxe",tag:{Dama
 
 /**
  * @typedef {Object} configDetails
- * @property {number} fieldOrBossId
- * @property {string} tagOrFieldObjName
- * @property {BlockPos} buttonPos
- * @property {BlockPos} lootAndWarnBlockPos
- * @property {Vec3d} tpToPos
- * @property {Vec3d} tpBackPos
- * @property {BlockPos} chargeBoxPos
- * @property {Vec3d} summonPos
- * @property {Internal.AABB} fieldAABB
- * @property {String} battleType
- * @property {number} fieldHeight
+ * @property {number} fieldOrBossId - 场地与boss的ID
+ * @property {string} tagOrFieldObjName - 场地唯一标签与计分板标识名
+ * @property {BlockPos} buttonPos - 入场按钮位置
+ * @property {BlockPos} lootAndWarnBlockPos - 奖励箱与警戒方块位置
+ * @property {Vec3d} tpToPos - 传送入场位置
+ * @property {Vec3d} tpBackPos - 传出场地(返回大厅)位置
+ * @property {BlockPos} chargeBoxPos - 存放激活boss方块镐子的箱子位置
+ * @property {Vec3d} summonPos - 召唤/中途回场位置
+ * @property {Internal.AABB} fieldAABB - 场地范围(AABB)
+ * @property {String} battleType - 战斗方式(单人/多人?/玩家间切磋?)
+ * @property {number} fieldHeight - 场地基准高度(以上层的地板为准)
  */
 
 /**
@@ -60,19 +60,19 @@ var defaultChargeBoxNBT = `Items:[{Slot:1b,id:"minecraft:iron_pickaxe",tag:{Dama
 /**@type {fieldConfig} */
 const fieldConfig = new Map([  //使用Map集成配置
     [10000,{
-        fieldOrBossId : 10000,  //场地与bossID
-        tagOrFieldObjName : "SingalActive10000",  //场地唯一计分板Objective标识
-        buttonPos : new BlockPos(-92,-46,-25),  //按钮位置
-        lootAndWarnBlockPos : new BlockPos(-92,-33,3),  //警戒方块与奖励箱位置
+        fieldOrBossId : 10000,  
+        tagOrFieldObjName : "SingalActive10000",  
+        buttonPos : new BlockPos(-92,-46,-25),  
+        lootAndWarnBlockPos : new BlockPos(-92,-33,3),  
         tpToPos : new Vec3d(-70.60,-35.00,3.44),
-        tpBackPos : new Vec3d(-92,-46,-8),  //传送返回位置
-        chargeBoxPos : new BlockPos(-90,-35,3),  //存放激活boss方块镐子的箱子位置
-        summonPos : new Vec3d(-91.5,-34,3.5),  //召唤位置
-        fieldAABB : AABB.of(-64,-2,30,-119,-36,-24),  //场地的范围(AABB)
-        battleType : "Singal",  //战斗方式(单人/多人)
+        tpBackPos : new Vec3d(-92,-46,-8),  
+        chargeBoxPos : new BlockPos(-90,-35,3),  
+        summonPos : new Vec3d(-91.5,-34,3.5),  
+        fieldAABB : AABB.of(-64,-2,30,-119,-36,-24),  
+        battleType : "Singal",  
         fieldHeight : -36,
-        //isBossSummoned : false,  //boss是否被召唤  //已写入动态文件
-        //difficulty : ""  //难度(请留空!)  //已写入动态文件
+        //isBossSummoned : false,    //已写入动态文件
+        //difficulty : ""   //已写入动态文件
     }],
     [10001,{
         fieldOrBossId : 10001,
@@ -92,72 +92,117 @@ const fieldConfig = new Map([  //使用Map集成配置
 
 /**
  * @typedef {Object} globalDifficultyDetails
- * @property {number} enemyDamageMultiplier
- * @property {number} fireballCooldown
- * @property {number} debuffProbability
- * @property {number} realDamageMultiplier
- * @property {number} flameSummonCooldown
- * @property {number} flameStrikeWaitTime 
- * @property {number} flameStrikeDuration 
- * @property {number} flameStrikeDamage
- * @property {number} flameStrikeRadius 
- * @property {number} finalServantDmgMultiplier
- * @property {number} maxHealthDecayCount
- * @property {number} healthDecayCooldown
- * @property {string} stringLootNBT
+ * @property {number} bossSpeedMultiplier - boss在四阶段前的移动速度倍率
+ * @property {number} enemyDamageMultiplier - boss和小怪的攻击伤害倍率
+ * @property {number} fireballCooldown - 召唤火球的间隔时间
+ * @property {number} fireballMaxWaveCount - 一次性召唤火球的最多波次
+ * @property {number} extraFireballAccelerationScale - 额外火球加速度乘数因子(基准0.1,这里填0.1就是翻倍);
+ * @property {number} debuffProbability - 被击中后获得debuff的概率
+ * @property {number} realDamageMultiplier - 真伤乘数因子(简单模式禁用)
+ * @property {number} flameSummonCooldown - 召唤烈焰阵冷却时间
+ * @property {number} flameStrikeWaitTime - 烈焰阵提醒时间
+ * @property {number} flameStrikeDuration - 烈焰阵生效时间
+ * @property {number} flameStrikeDamage - 烈焰阵伤害
+ * @property {number} flameStrikeRadius - 烈焰阵半径
+ * @property {number} flameStrikeCount - 一次召唤的烈焰阵个数
+ * @property {number} finalServantDmgMultiplier - 最终仆从造成的百分比伤害
+ * @property {number} canBossDecayHealth - boss能否降低玩家最大生命值
+ * @property {number} bossMaxHealthDecayCount - boss造成伤害后的玩家最大生命值衰减
+ * @property {number} servantMaxHealthDecayCount - 仆从造成伤害后的玩家最大生命值衰减
+ * @property {number} healthDecayCooldown - 最终仆从扣除生命值上限之后不再扣除的一段时间(tick)
+ * @property {string} stringLootNBT - 战利品nbt文本
  */
 
 /**
- * @typedef {Map<string,globalDifficultyDetails>} difficultyParameter
+ * @typedef {Map<string,globalDifficultyDetails>} difficultyParameter - 难度属性
  */
 
 /**@type {difficultyParameter} */
 
 const difficultyParameter = new Map([
     ["easy",{
-        enemyDamageMultiplier : 1.5,  //boss和小怪的攻击伤害倍率
-        fireballCooldown : 800,  //召唤火球的间隔时间(默认7.5秒)
-        debuffProbability : 0,  //被击中后获得debuff的概率
-        realDamageMultiplier : 0,  //真伤乘数因子(简单模式禁用)
-        flameSummonCooldown : 600,  //召唤烈焰阵时间
+        bossSpeedMultiplier : 1,
+        enemyDamageMultiplier : 1.5,
+        //---
+        fireballCooldown : 800, 
+        fireballMaxWaveCount : 1,
+        extraFireballAccelerationScale : 0,
+        //---
+        debuffProbability : 0,  
+        //---
+        realDamageMultiplier : 0, 
+        //--- 
+        flameSummonCooldown : 600,  
         flameStrikeWaitTime : 60,
         flameStrikeDuration : 60,
         flameStrikeDamage : 8,
         flameStrikeRadius : 6.5,
-        finalServantDmgMultiplier : 0,  //最终仆从造成的百分比伤害
-        maxHealthDecayCount : 0, //最终仆从造成伤害后的玩家最大生命值衰减
-        healthDecayCooldown : 0, //最终仆从扣除生命值上限之后不再扣除的一段时间(tick)
-        stringLootNBT : `Items:[{Slot:0b,id:"numismatics:bevel",Count:1b},{Slot:1b,"id":"simplehats:haticon",Count:1b}]`
+        flameStrikeCount : 1,
+        //---
+        finalServantDmgMultiplier : 0,  
+        //---
+        canBossDecayHealth : 0,
+        bossMaxHealthDecayCount : 0, 
+        servantMaxHealthDecayCount : 0, 
+        healthDecayCooldown : 0, 
+        //---
+        stringLootNBT : `LootTable:"challenge:chests/easyreward"`
     }],
     ["normal",{
+        bossSpeedMultiplier : 1.15,
         enemyDamageMultiplier : 3,
-        fireballCooldown : 400,  //召唤火球的间隔时间(默认7.5秒)
-        debuffProbability : 50,  //被击中后获得debuff的概率
+        //---
+        fireballCooldown : 400,  
+        fireballMaxWaveCount : 2,
+        extraFireballAccelerationScale : 0.05,
+        //---
+        debuffProbability : 50,  
+        //---
         realDamageMultiplier : 0.05,
+        //---
         flameSummonCooldown : 320,
         flameStrikeWaitTime : 45,
         flameStrikeDuration : 80,
         flameStrikeDamage : 14,
         flameStrikeRadius : 6.5,
+        flameStrikeCount : 1,
+        //---
         finalServantDmgMultiplier : 0.125,
-        maxHealthDecayCount : 1,
+        //---
+        canBossDecayHealth : 0,
+        bossMaxHealthDecayCount : 0, 
+        servantMaxHealthDecayCount : 2,
         healthDecayCooldown : 100, 
-        stringLootNBT : `Items:[{Slot:0b,id:"minecraft:paper",Count:1b}]`
+        //---
+        stringLootNBT : `LootTable:"challenge:chests/normalreward"`
     }],
     ["hard",{
+        bossSpeedMultiplier : 1.3,
         enemyDamageMultiplier : 4,
-        fireballCooldown : 150,  //召唤火球的间隔时间(默认7.5秒)
-        debuffProbability : 50,  //被击中后获得debuff的概率
+        //---
+        fireballCooldown : 150,  
+        fireballMaxWaveCount : 3, 
+        extraFireballAccelerationScale : 0.12,
+        //---
+        debuffProbability : 85, 
+        //---
         realDamageMultiplier : 0.1,
+        //---
         flameSummonCooldown : 160,
         flameStrikeWaitTime : 30,
         flameStrikeDuration : 100,
         flameStrikeDamage : 20,
         flameStrikeRadius : 6.5,
+        flameStrikeCount : 2,
+        //---
         finalServantDmgMultiplier : 0.25,
-        maxHealthDecayCount : 2,
+        //---
+        canBossDecayHealth : 0,
+        bossMaxHealthDecayCount : 0, 
+        servantMaxHealthDecayCount : 4,
         healthDecayCooldown : 60, 
-        stringLootNBT : `Items:[{Slot:0b,id:"minecraft:paper",Count:1b}]`
+        //---
+        stringLootNBT : `LootTable:"challenge:chests/hardreward"`
     }]
 ])
 
@@ -169,6 +214,7 @@ const difficultyParameter = new Map([
  * @property {number} bulletDamageMultiplier - 子弹伤害乘数因子 
  * @property {number} followPlayerRange - 跟踪玩家范围
  * @property {number} PersistenceRequired - 是否防止自然消失 
+ * @property {number} canDecayHealth - 是否会造成生命值衰减
  * @property {number} [isFinalTurn] - 是否为最终回合特殊怪物 
  * @property {number} summonCount - 召唤数量
  */
@@ -190,9 +236,10 @@ const ServantMonsterConfig = new Map([  //需要免疫非玩家伤害(魔法和�
         cataclysm_ignited_revenant : {
             entityType : "cataclysm:ignited_revenant",
             HP : 135,
-            bulletDamageMultiplier : 0.7,   //对应tacz0.4抗性(0 -> 1 damage下降)(1 - 0.6(乘数因子)),l2damage的抗性是直接用的乘数因子(0.6)
+            bulletDamageMultiplier : 0.7,   //对应tacz0.3抗性(0 -> 1 damage下降)(1 - 0.6(乘数因子)),l2damage的抗性是直接用的乘数因子(0.6)
             followPlayerRange : 50,  //跟踪范围
             PersistenceRequired : 1,  //防止自然消失(使用mergeNBT设置)
+            canDecayHealth : 0,
             summonCount : 2 //生成2只
         },
         minecraft_piglin_brute : {
@@ -201,8 +248,9 @@ const ServantMonsterConfig = new Map([  //需要免疫非玩家伤害(魔法和�
             bulletDamageMultiplier : 0.7, //待测试
             followPlayerRange : 50,
             PersistenceRequired : 1,
-            isFinalTurn : 1,  //吃到伤害直接掉四分之一HP
-            summonCount : 8
+            canDecayHealth : 1,  //吃到伤害直接掉八分之一HP
+            isFinalTurn : 1,  
+            summonCount : 7
         },
         minecraft_phantom : {
             entityType : "minecraft:phantom",
@@ -210,8 +258,9 @@ const ServantMonsterConfig = new Map([  //需要免疫非玩家伤害(魔法和�
             bulletDamageMultiplier : 0.7, //待测试
             followPlayerRange : 50,
             PersistenceRequired : 1,
+            canDecayHealth : 1,
             isFinalTurn : 1,  
-            summonCount : 4
+            summonCount : 2
         }
     }],
     ["hard",{
@@ -221,6 +270,7 @@ const ServantMonsterConfig = new Map([  //需要免疫非玩家伤害(魔法和�
             bulletDamageMultiplier : 0.5,
             followPlayerRange : 50,
             PersistenceRequired : 1,  //防止自然消失(使用mergeNBT设置)
+            canDecayHealth : 0,
             summonCount : 3 //生成3只
         },  
         minecraft_piglin_brute : {
@@ -229,8 +279,9 @@ const ServantMonsterConfig = new Map([  //需要免疫非玩家伤害(魔法和�
             bulletDamageMultiplier : 0.5, //待测试
             followPlayerRange : 50,
             PersistenceRequired : 1,
-            isFinalTurn : 1,  //吃到伤害直接掉四分之一HP
-            summonCount : 8
+            canDecayHealth : 1,  //吃到伤害直接掉四分之一HP
+            isFinalTurn : 1,  
+            summonCount : 7
         },
         minecraft_phantom : {
             entityType : "minecraft:phantom",
@@ -238,8 +289,9 @@ const ServantMonsterConfig = new Map([  //需要免疫非玩家伤害(魔法和�
             bulletDamageMultiplier : 0.4, //待测试
             followPlayerRange : 50,
             PersistenceRequired : 1,
+            canDecayHealth : 1,
             isFinalTurn : 1,  
-            summonCount : 4
+            summonCount : 2
         }
     }]
 ])
@@ -489,7 +541,13 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 return;
             }
 
+            var fieldAABB = config.fieldAABB;
+            var xAABBMax = fieldAABB.maxX;
+            var zAABBMax = fieldAABB.maxZ;
+            var xAABBMin = fieldAABB.minX;
+            var zAABBMin = fieldAABB.minZ;
             var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+            server.runCommandSilent(`/forceload add ${xAABBMax} ${zAABBMax} ${xAABBMin} ${zAABBMin}`);
             if (isBossSummoned) {
                 console.warn(`试图在boss已召唤的情况下进入场地,或数据出现问题`);
                 server.tell(Component.red(`试图在boss已召唤的情况下进入场地,或数据出现问题,如场地内不存在boss,请联系管理员`))
@@ -501,10 +559,13 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 }
                 entity.discard();
             })
+            server.runCommandSilent(`/fill ${config.fieldAABB.minX} ${config.fieldHeight} ${config.fieldAABB.minZ} ${config.fieldAABB.maxX} ${config.fieldHeight + 5} ${config.fieldAABB.maxZ} air replace water`);
+            server.runCommandSilent(`/fill ${config.fieldAABB.minX} ${config.fieldHeight} ${config.fieldAABB.minZ} ${config.fieldAABB.maxX} ${config.fieldHeight + 5} ${config.fieldAABB.maxZ} air replace ice`);
             server.runCommandSilent(`/setblock ${config.lootAndWarnBlockPos.x} ${config.lootAndWarnBlockPos.y} ${config.lootAndWarnBlockPos.z} alexscaves:hazmat_warning_block`);
             server.runCommandSilent(`/setblock ${config.chargeBoxPos.x} ${config.chargeBoxPos.y} ${config.chargeBoxPos.z} air`);
             server.scheduleInTicks(1,() => {
                 server.runCommandSilent(`/setblock ${config.chargeBoxPos.x} ${config.chargeBoxPos.y} ${config.chargeBoxPos.z} minecraft:chest{${StringNBT}}`);
+                server.runCommandSilent(`/forceload remove ${xAABBMax} ${zAABBMax} ${xAABBMin} ${zAABBMin}`);
             })
         },
     //-------------------------------------------------------------------------------------
@@ -562,6 +623,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
             var difficulty = single_Ignis.difficultyManager.difficultyChoose(player,config);
             if (difficulty == null) {
+                console.error("难度不存在");
                 return;
             }
             single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"isBossSummoned",true);
@@ -587,6 +649,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             level.addFreshEntity(flameCountDown);//衰减期每1tick -0.1 Radius
 
             block.set("air");
+
+            var canBossDecayHp = difficultyParameter.get(difficulty).canBossDecayHealth;
             server.scheduleInTicks(151,() => {
                 /** @type {Internal.LivingEntity} */
                 var singleIgnis = level.createEntity("cataclysm:ignis");
@@ -598,7 +662,11 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     singleIgnis.setMaxHealth(1024);
                     singleIgnis.setHealth(1024);
                 }
+                singleIgnis.setAttributeBaseValue("minecraft:generic.movement_speed",difficultyParameter.get(difficulty).bossSpeedMultiplier * 0.3);
                 singleIgnis.persistentData.merge(`{isBoss:1,battleType:"${config.battleType}",ID:${config.fieldOrBossId},difficulty:${difficulty}}`);
+                if (canBossDecayHp == 1) {
+                    singleIgnis.persistentData.merge(`{canDecayHealth:1}`);
+                }
                 singleIgnis.setPos(config.summonPos);
                 maxRegenationHp.set(entityUUID,singleIgnis.maxHealth);
                 level.addFreshEntity(singleIgnis);
@@ -721,7 +789,6 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          */
         generateLootChset : function (server,x,y,z,stringLootNBT) {
             server.runCommandSilent(`/setblock ${x} ${y} ${z} minecraft:chest{${stringLootNBT}}`);
-            server.runCommandSilent(`/execute positioned ${x} ${y} ${z} run lootr custom`);
         },
     //---------------------------------------------------------------------------------------
         /**
@@ -855,6 +922,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 var zAABBMin = fieldAABB.minZ;
                 var isBossReallyExist = false;
                 server.runCommandSilent(`/forceload add ${xAABBMax} ${zAABBMax} ${xAABBMin} ${zAABBMin}`);
+                server.runCommandSilent(`/fill ${config.fieldAABB.minX} ${config.fieldHeight} ${config.fieldAABB.minZ} ${config.fieldAABB.maxX} ${config.fieldHeight + 5} ${config.fieldAABB.maxZ} air replace water`);
+                server.runCommandSilent(`/fill ${config.fieldAABB.minX} ${config.fieldHeight} ${config.fieldAABB.minZ} ${config.fieldAABB.maxX} ${config.fieldHeight + 5} ${config.fieldAABB.maxZ} air replace ice`);
                 var entitiesInField = level.getEntitiesWithin(config.fieldAABB);
                 if (entitiesInField.filter(entity => entity.type == "minecraft:player").isEmpty()) {
                     entitiesInField.filter(entity => entity.type != "minecraft:item" && entity.type != "minecraft:player").forEach(entity => {
@@ -1143,24 +1212,14 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                                     server.runCommandSilent(`/damage ${playerName} ${realDamage} minecraft:out_of_world`);
                                 }
                             }
+                            this.execHealthDecay(entity,server,source,difficulty);
                             event.cancel();
                         }
                     }
                     if (source.actual.persistentData.getInt("isFinalTurn") != 0) { //为最终回合小怪
-                        if (difficulty.match("easy")) return;
-                        var playerMaxHealth = entity.maxHealth;
                         var servantDamage = entity.maxHealth * difficultyParameter.get(difficulty).finalServantDmgMultiplier;
-                        var maxHPDecayCount = difficultyParameter.get(difficulty).maxHealthDecayCount
-                        var maxHPDecayCd = difficultyParameter.get(difficulty).healthDecayCooldown;
                         if (servantDamage < currentPlayerHp) {
                             server.runCommandSilent(`/damage ${playerName} ${servantDamage} minecraft:out_of_world`);
-                            if (!maxHealthDecay.has(playerName)) {
-                                entity.setMaxHealth(playerMaxHealth - maxHPDecayCount);
-                                maxHealthDecay.set(playerName ,true);
-                                server.scheduleInTicks(maxHPDecayCd, () => {
-                                    maxHealthDecay.delete(playerName);
-                                })
-                            }
                         }
                         if (servantDamage > currentPlayerHp) {
                             if (!PlayerHasDied.has(playerUUid)) {
@@ -1169,7 +1228,45 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                                 server.runCommandSilent(`/damage ${playerName} ${servantDamage} minecraft:out_of_world`);
                             }
                         }
+                        this.execHealthDecay(entity,server,source,difficulty);
                         event.cancel();
+                    }
+                }
+            }
+        },
+    //---------------------------------------------------------------------------------------
+        /**
+         * @param {Internal.LivingEntity} entity 
+         * @param {Internal.MinecraftServer} server 
+         * @param {DamageSource} source 
+         * @param {string} difficulty
+         * @returns {void} - 简单模式目前不可用(0.0)
+         */
+        execHealthDecay : function (entity, server ,source ,difficulty) {
+            if (entity.isPlayer()) {  
+                if (source.actual != null) {
+                    var playerName = String(entity.username);
+                    if (difficulty == null) {
+                        console.error(`难度为空!`);
+                        return;
+                    }
+                    var entityPersistentData = source.actual.persistentData;
+                    if (entityPersistentData.getInt("canDecayHealth") != 0) { //会对最大生命值造成损伤
+                        var currentPlayerMaxHealth = entity.maxHealth;
+                        var maxHPDecayCd = difficultyParameter.get(difficulty).healthDecayCooldown;
+                        var maxHPDecayCount = 0;
+                        if (entityPersistentData.getInt("isBoss") != 0) {
+                            maxHPDecayCount = difficultyParameter.get(difficulty).bossMaxHealthDecayCount;
+                        } else if (entityPersistentData.getInt("isServant") != 0) {
+                            maxHPDecayCount = difficultyParameter.get(difficulty).servantMaxHealthDecayCount;
+                        }
+                        if (!maxHealthDecay.has(playerName) && currentPlayerMaxHealth - maxHPDecayCount >= 1) {
+                            entity.setMaxHealth(Math.max(currentPlayerMaxHealth - maxHPDecayCount, 1));
+                            maxHealthDecay.set(playerName ,true);
+                            server.scheduleInTicks(maxHPDecayCd, () => {
+                                maxHealthDecay.delete(playerName);
+                            })
+                        }
                     }
                 }
             }
@@ -1242,6 +1339,66 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
         },
     //---------------------------------------------------------------------------------------
         /**
+         * @param {Internal.Level} level
+         * @param {configDetails} config
+         * @param {number} extraAccelerationScale
+         * @returns {void}
+         */
+        summonSingleFireball : function (level ,config, extraAccelerationScale) {
+            let scanAABB = config.fieldAABB;
+            level.getEntitiesWithin(scanAABB).forEach(entity => {
+                if (entity.type == "cataclysm:ignis") {
+                    let player = level.getNearestPlayer(
+                        entity.x, entity.y, entity.z, 50, 
+                        p => config.fieldAABB.contains(p.position()) && !p.isSpectator() //在场地内并且不是旁观的(并且在boss50m内的)玩家
+                    );   //最后一个参数为谓词,接收实体,返回false或true(即实体是否满足条件(实体是...)),以此来过滤实体,此处可用箭头函数校验  
+                    //箭头函数如果不加花括号一般是直接起return作用,加花括号要返回必须加return (p => {return ...} 相当于 p => ...)
+                    /**
+                     * @param {Internal.Player} p 
+                     * @param {number} delta
+                     * @returns {Vec3d[]}
+                     */
+                    if (player == null) {
+                        console.debug("未找到玩家,无法召唤火球")
+                        return;
+                    }
+                    var predictNextPosition = function (p,delta) {
+                        var pos0 = p.position();
+                        var pos1 = p.position().add((new Vec3d(0,delta,0)));
+                        var pos2 = p.position().add((new Vec3d(0,-delta,0)));
+                        var pos3 = p.position().add((new Vec3d(-delta,0,-delta)));
+                        var pos4 = p.position().add((new Vec3d(delta,0,delta)));
+                        var pos5 = p.position().add((new Vec3d(delta,0,-delta)));
+                        var pos6 = p.position().add((new Vec3d(-delta,0,delta)));
+                        var posArr = [pos0,pos1,pos2,pos3,pos4,pos5,pos6];
+                        return posArr;
+                    }
+                    /**
+                     * @param {Vec3d} vec3d 
+                     * @returns {[]}
+                     */
+                    var vec3dToArray = function (vec3d) {
+                        var x = vec3d.x();
+                        var y = vec3d.y();
+                        var z = vec3d.z();
+                        return [x,y,z];
+                    }
+                    var playerPosArr = predictNextPosition(player,random.nextDouble(6));
+                    var accelerationScale = 0.1 + extraAccelerationScale;
+                    for(var i = 0;i < 7;i ++){
+                        var fireball = level.createEntity("cataclysm:ignis_fireball");
+                        fireball.setPos(entity.position().add((new Vec3d(0,6,0))));
+                        var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
+                        var slowDirection = direction.scale(accelerationScale); //scale 点乘
+                        var power = "[" + vec3dToArray(slowDirection).toString() + "]";
+                        fireball.mergeNbt(`{timer:-100,power:${power}}`)
+                        level.addFreshEntity(fireball);
+                    }
+                }
+            })   
+        },
+    //---------------------------------------------------------------------------------------
+        /**
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.Level} level
          * @param {string} difficulty
@@ -1249,61 +1406,24 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          */
         autoSummonIgnisFireball : function (server ,level ,difficulty) {
             for (const [id, config] of fieldConfig) {
-                var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+                let isBossSummoned = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
                 if (!isBossSummoned) continue;
-                if (!single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile).match(difficulty)) continue;
-                var scanAABB = config.fieldAABB;
-                level.getEntitiesWithin(scanAABB).forEach(entity => {
-                    if (entity.type == "cataclysm:ignis") {
-                        var player = level.getNearestPlayer(
-                            entity.x, entity.y, entity.z, 50, 
-                            p => config.fieldAABB.contains(p.position()) && !p.isSpectator() //在场地内并且不是旁观的(并且在boss50m内的)玩家
-                        );   //最后一个参数为谓词,接收实体,返回false或true(即实体是否满足条件(实体是...)),以此来过滤实体,此处可用箭头函数校验  
-                        //箭头函数如果不加花括号一般是直接起return作用,加花括号要返回必须加return (p => {return ...} 相当于 p => ...)
-                        /**
-                         * @param {Internal.Player} p 
-                         * @param {number} delta
-                         * @returns {Vec3d[]}
-                         */
-                        if (player == null) {
-                            console.debug("未找到玩家,无法召唤火球")
-                            return;
-                        }
-                        var predictNextPosition = function (p,delta) {
-                            var pos0 = p.position();
-                            var pos1 = p.position().add((new Vec3d(0,delta,0)));
-                            var pos2 = p.position().add((new Vec3d(0,-delta,0)));
-                            var pos3 = p.position().add((new Vec3d(-delta,0,-delta)));
-                            var pos4 = p.position().add((new Vec3d(delta,0,delta)));
-                            var pos5 = p.position().add((new Vec3d(delta,0,-delta)));
-                            var pos6 = p.position().add((new Vec3d(-delta,0,delta)));
-                            var posArr = [pos0,pos1,pos2,pos3,pos4,pos5,pos6];
-                            return posArr;
-                        }
-                        /**
-                         * @param {Vec3d} vec3d 
-                         * @returns {[]}
-                         */
-                        var vec3dToArray = function (vec3d) {
-                            var x = vec3d.x();
-                            var y = vec3d.y();
-                            var z = vec3d.z();
-                            return [x,y,z];
-                        }
-                        var playerPosArr = predictNextPosition(player,random.nextDouble(6));
-                        var accelerationScale = 0.1;
-                        for(var i = 0;i < 7;i ++){
-                            var fireball = level.createEntity("cataclysm:ignis_fireball");
-                            fireball.setPos(entity.position().add((new Vec3d(0,6,0))));
-                            var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
-                            var slowDirection = direction.scale(accelerationScale); //scale 点乘
-                            var power = "[" + vec3dToArray(slowDirection).toString() + "]";
-                            fireball.mergeNbt(`{timer:-100,power:${power}}`)
-                            level.addFreshEntity(fireball);
-                        }
-                    }
-                })   
-            
+                let currentDifficulty = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+                if (!currentDifficulty.match(difficulty)) continue;
+                let currentConfig = config;
+                let maxFireballWave = difficultyParameter.get(currentDifficulty).fireballMaxWaveCount;
+                let extraAccelerationScale = difficultyParameter.get(currentDifficulty).extraFireballAccelerationScale;
+                var finalFireballWave;
+                if (maxFireballWave > 1) {
+                    finalFireballWave = maxFireballWave;
+                } else {
+                    finalFireballWave = 1;
+                }
+                for (let wave = 0; wave < finalFireballWave; wave++) {
+                    server.scheduleInTicks(10 * wave , () => {
+                        this.summonSingleFireball(level, currentConfig, extraAccelerationScale);
+                    })
+                }
             }
         },
     //---------------------------------------------------------------------------------------
@@ -1391,8 +1511,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     let currentDifficultyParam = difficultyParameter.get(currentDifficulty);
                     server.scheduleInTicks(5 * foreachCount ,() => {
                         if (currentBossStatus) {
-                            this.generateSingleFlameStrike(level ,currentDifficultyParam.flameStrikeWaitTime ,currentDifficultyParam.flameStrikeDuration ,currentDifficultyParam.flameStrikeDamage ,currentDifficultyParam.flameStrikeRadius ,currentConfig);
-                            if (currentDifficulty == "hard") {
+                            for (let i = 0; i < currentDifficultyParam.flameStrikeCount; i++) {
                                 this.generateSingleFlameStrike(level ,currentDifficultyParam.flameStrikeWaitTime ,currentDifficultyParam.flameStrikeDuration ,currentDifficultyParam.flameStrikeDamage ,currentDifficultyParam.flameStrikeRadius ,currentConfig);
                             }
                         }
@@ -1517,6 +1636,9 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             newServant.setMaxHealth(servant.HP);
             newServant.setHealth(servant.HP);
             newServant.setPos(pos);
+            if (servant.entityType == "minecraft:phantom") {
+                newServant.setPos(pos.x(), pos.y() + 5, pos.z());
+            }
             newServant.mergeNbt(`{PersistenceRequired:${servant.PersistenceRequired}}`);
             newServant.setAttributeBaseValue("tacz:tacz.bullet_resistance",1 - servant.bulletDamageMultiplier);
             newServant.setGlowing(true);
@@ -1582,6 +1704,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          */
         execFinalTurn : function (entity ,server ,level) {
             entity.setHealth(1);
+            entity.setAttributeBaseValue("minecraft:generic.movement_speed",0.3);
             var entityUUID = String(entity.stringUuid);
             isBossFinalTurn.set(entityUUID,true);
             var fieldId = entity.persistentData.getInt("ID");
@@ -2066,7 +2189,7 @@ global.LivingHurtHandler = event => {  //在受伤之中的最后部分执行
 }
 
 EntityEvents.death(event => {
-    const {entity ,server ,level} = event;
+    let {entity ,server ,level} = event;
     const {FieldManager ,BattleManager} = single_Ignis;
     if (entity.isPlayer() && (entity.persistentData.get("isBoss") == null)) {
         server.scheduleInTicks(2 ,() => {
@@ -2212,6 +2335,51 @@ ServerEvents.command("Backintofield",event => {
     }
 })
 
+ServerEvents.chestLootTables(event => {
+    event.addChest("challenge:easyreward",loot => {
+        loot.addPool(money => {
+            money.addItem("numismatics:bevel",100).count({min:1,max:1});
+            money.setUniformRolls(1,1);
+        })
+    })
+    event.addChest("challenge:normalreward",loot => {
+        loot.addPool(money => {
+            money.addItem("numismatics:bevel",100).count({min:1,max:1});
+            money.setUniformRolls(1,1);
+        })
+        loot.addPool(haticon => {
+            haticon.addItem("simplehats:haticon",100).count({min:1,max:1});
+            haticon.setUniformRolls(1,1);
+        })
+        loot.addPool(hat => {
+            hat.addItem("simplehats:hatbag_festive",100);
+            hat.addItem("simplehats:hatbag_halloween",100);
+            hat.addItem("simplehats:hatbag_summer",100);
+            hat.addItem("simplehats:hatbag_easter",100);
+            hat.addItem("simplehats:hatbag_epic",100);
+            hat.addItem("simplehats:hatbag_rare",100);
+            hat.addItem("simplehats:hatbag_uncommon",100);
+            hat.setUniformRolls(1,1);
+        })
+    })
+    event.addChest("challenge:hardreward",loot => {
+        loot.addPool(haticon => {
+            haticon.addItem("simplehats:haticon",100).count({min:1,max:1});
+            haticon.setUniformRolls(1,1);
+        })
+        loot.addPool(hat => {
+            hat.addItem("simplehats:hatbag_festive",100);
+            hat.addItem("simplehats:hatbag_halloween",100);
+            hat.addItem("simplehats:hatbag_summer",100);
+            hat.addItem("simplehats:hatbag_easter",100);
+            hat.addItem("simplehats:hatbag_epic",100);
+            hat.addItem("simplehats:hatbag_rare",100);
+            hat.addItem("simplehats:hatbag_uncommon",100);
+            hat.setUniformRolls(2,2);
+        })
+    })
+})
+
 //更新日志
 //1.0.0:完成初步框架功能,能够正常运行
 //1.1.0:模块化高频重复部分
@@ -2235,6 +2403,12 @@ ServerEvents.command("Backintofield",event => {
 //      10.完全重构模块化了各部分代码,现在主要是三个部分(Config,Method,Main)
 //      11.修复了部分代码行出现空指针的问题,加上了null/undefined检测
 //      12.现在玩家无法直接丢出主手物品,只能通过打开物品栏丢出(防止误丢)
+//1.3.1:1.现在火球可以调整速度与召唤波次,分离了召唤单个火球阵与总调用召唤火球的代码
+//      2.优化了召唤烈焰阵的数量的逻辑,现在可以动态通过难度参数调整
+//      3.现在重置场地时将清除场地中的水方块与冰块,避免战斗过程中融化干扰战斗
+//      4.拆分了最大生命值衰减的方法,现在将在处理真伤后以单独方法的形式触发,并且允许单独调控boss与小怪对玩家的衰减量
+//      5.(预计)允许焰魔速度调整(未完工)
+//      6.(预计)允许小怪速度调整(未完工)
 
 
 //=================================when player is boss...

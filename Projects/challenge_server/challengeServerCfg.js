@@ -10,6 +10,7 @@ var blackListEntity = ["man_of_many_planes:scarlet_biplane","man_of_many_planes:
 "immersive_aircraft:quadrocopter","immersive_aircraft:bamboo_hopper","immersive_aircraft:warship"]; //实体黑名单
 //END
 
+var rightClickCooldown = false;
 var ResetFlag = false;
 var IIIStageIgnis = new Map();
 var PlayerDeadAlready =new Map();

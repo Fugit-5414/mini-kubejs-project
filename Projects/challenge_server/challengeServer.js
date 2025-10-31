@@ -96,7 +96,9 @@ const fieldConfig = new Map([  //使用Map集成配置
  * @property {number} enemyDamageMultiplier - boss和小怪的攻击伤害倍率
  * @property {number} fireballCooldown - 召唤火球的间隔时间
  * @property {number} fireballMaxWaveCount - 一次性召唤火球的最多波次
- * @property {number} extraFireballAccelerationScale - 额外火球加速度乘数因子(基准0.1,这里填0.1就是翻倍);
+ * @property {number} extraFireballAccelerationScale - 额外火球加速度乘数因子(基准0.1,这里填0.1就是翻倍)
+ * @property {number} extraFireballOrMagicDamageScale - 额外火球(或者说魔法(包括烈焰阵))伤害乘数因子
+ * @property {number} extraFireballOrExplosionDamageScale - 额外火球(无伤害来源爆炸伤害)伤害乘数因子
  * @property {number} debuffProbability - 被击中后获得debuff的概率
  * @property {number} realDamageMultiplier - 真伤乘数因子(简单模式禁用)
  * @property {number} flameSummonCooldown - 召唤烈焰阵冷却时间
@@ -110,7 +112,7 @@ const fieldConfig = new Map([  //使用Map集成配置
  * @property {number} bossMaxHealthDecayCount - boss造成伤害后的玩家最大生命值衰减
  * @property {number} servantMaxHealthDecayCount - 仆从造成伤害后的玩家最大生命值衰减
  * @property {number} healthDecayCooldown - 最终仆从扣除生命值上限之后不再扣除的一段时间(tick)
- * @property {string} stringLootNBT - 战利品nbt文本
+ * @property {string} stringLootTable - 战利品nbt文本
  */
 
 /**
@@ -127,6 +129,8 @@ const difficultyParameter = new Map([
         fireballCooldown : 800, 
         fireballMaxWaveCount : 1,
         extraFireballAccelerationScale : 0,
+        extraFireballOrMagicDamageScale : 1,  
+        extraFireballOrExplosionDamageScale : 1,
         //---
         debuffProbability : 0,  
         //---
@@ -146,15 +150,17 @@ const difficultyParameter = new Map([
         servantMaxHealthDecayCount : 0, 
         healthDecayCooldown : 0, 
         //---
-        stringLootNBT : `LootTable:"challenge:chests/easyreward"`
+        stringLootTable : `LootTable:"challenge:chests/easyreward"`
     }],
     ["normal",{
-        bossSpeedMultiplier : 1.15,
+        bossSpeedMultiplier : 1.1,
         enemyDamageMultiplier : 3,
         //---
         fireballCooldown : 400,  
         fireballMaxWaveCount : 2,
         extraFireballAccelerationScale : 0.05,
+        extraFireballOrMagicDamageScale : 1,
+        extraFireballOrExplosionDamageScale : 1,
         //---
         debuffProbability : 50,  
         //---
@@ -174,15 +180,17 @@ const difficultyParameter = new Map([
         servantMaxHealthDecayCount : 2,
         healthDecayCooldown : 100, 
         //---
-        stringLootNBT : `LootTable:"challenge:chests/normalreward"`
+        stringLootTable : `LootTable:"challenge:chests/normalreward"`
     }],
     ["hard",{
-        bossSpeedMultiplier : 1.3,
+        bossSpeedMultiplier : 1.2,
         enemyDamageMultiplier : 4,
         //---
         fireballCooldown : 150,  
         fireballMaxWaveCount : 3, 
         extraFireballAccelerationScale : 0.12,
+        extraFireballOrMagicDamageScale : 1,
+        extraFireballOrExplosionDamageScale : 1,
         //---
         debuffProbability : 85, 
         //---
@@ -202,7 +210,37 @@ const difficultyParameter = new Map([
         servantMaxHealthDecayCount : 4,
         healthDecayCooldown : 60, 
         //---
-        stringLootNBT : `LootTable:"challenge:chests/hardreward"`
+        stringLootTable : `LootTable:"challenge:chests/hardreward"`
+    }],
+    ["hell",{
+        bossSpeedMultiplier : 1.5,
+        enemyDamageMultiplier : 4,
+        //---
+        fireballCooldown : 150,  
+        fireballMaxWaveCount : 5, 
+        extraFireballAccelerationScale : 0.15,
+        extraFireballOrMagicDamageScale : 5,  //5则为一次掉4-5HP(全套保护五腾炎甲)
+        extraFireballOrExplosionDamageScale : 10,  //10则一次掉0-5HP(全套保护五腾炎甲)
+        //---
+        debuffProbability : 85, 
+        //---
+        realDamageMultiplier : 0.1,
+        //---
+        flameSummonCooldown : 160,
+        flameStrikeWaitTime : 30,
+        flameStrikeDuration : 100,
+        flameStrikeDamage : 20,
+        flameStrikeRadius : 6.5,
+        flameStrikeCount : 2,
+        //---
+        finalServantDmgMultiplier : 0.25,
+        //---
+        canBossDecayHealth : 0,
+        bossMaxHealthDecayCount : 0, 
+        servantMaxHealthDecayCount : 4,
+        healthDecayCooldown : 60, 
+        //---
+        stringLootTable : `LootTable:"challenge:chests/hardreward"`
     }]
 ])
 
@@ -374,7 +412,8 @@ var bossHpWhenPlayerUseCmd = new Map(); //玩家使用返回场地命令时boss�
  * @property {string} difficulty
 */
 /**@type {Map<string,FieldStatus>} */
-var fieldStatusCache = new Map(); //场地状态缓存
+var FieldStatusCache = new Map(); //ID为键的场地状态缓存(用于处理server遍历事件)
+var playerToFieldReflection = new Map(); //玩家为键的场地状态缓存(用于处理hurt事件等)
 var dateCache = -1;
 
 /**@type {Map<id ,leftTime>} */
@@ -546,7 +585,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             var zAABBMax = fieldAABB.maxZ;
             var xAABBMin = fieldAABB.minX;
             var zAABBMin = fieldAABB.minZ;
-            var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+            var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
             server.runCommandSilent(`/forceload add ${xAABBMax} ${zAABBMax} ${xAABBMin} ${zAABBMin}`);
             if (isBossSummoned) {
                 console.warn(`试图在boss已召唤的情况下进入场地,或数据出现问题`);
@@ -597,6 +636,9 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                         nearestPlayer.tags.remove(tag);
                     }
                 })
+                if (playerToFieldReflection.has(String(nearestPlayer.username))) {
+                    playerToFieldReflection.delete(String(nearestPlayer.username));
+                }
                 nearestPlayer.tags.add(config.tagOrFieldObjName)  //获取到的player执行命令时遵循命令上下文中其拥有的权限级别,故不能用runCommand
                 nearestPlayer.teleportTo(config.tpToPos.x(),config.tpToPos.y(),config.tpToPos.z());
                 if (ExceptionIPs != null && ExceptionIPs.get(String(nearestPlayer.username)) != null) {
@@ -642,6 +684,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
 
             this.addPlayerToObj(server ,playername ,config.tagOrFieldObjName ,1);  //锁定有一个玩家在战斗中
+            playerToFieldReflection.set(playername,config.fieldOrBossId.toString());
             var flameCountDown = level.createEntity("cataclysm:flame_strike");
             flameCountDown.mergeNbt(`{WaitTime:100,Duration:0}`);
             flameCountDown.mergeNbt(`{Radius:5,is_soul:1}`);
@@ -711,6 +754,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
             entity.removeTag(config.tagOrFieldObjName);  //清除玩家队伍,之后boss被discard
             this.RemoveUselessObj(server,config);
+            playerToFieldReflection.delete(String(entity.username));
             PlayerHasDied.delete(String(entity.stringUuid));
             entity.tell(`请再接再厉!`);
             summonOutTime.delete(String(entity.stringUuid));
@@ -784,11 +828,11 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {number} x 
          * @param {number} y 
          * @param {number} z 
-         * @param {string} stringLootNBT 
+         * @param {string} stringLootTable 
          * @returns {void}
          */
-        generateLootChset : function (server,x,y,z,stringLootNBT) {
-            server.runCommandSilent(`/setblock ${x} ${y} ${z} minecraft:chest{${stringLootNBT}}`);
+        generateLootChset : function (server,x,y,z,stringLootTable) {
+            server.runCommandSilent(`/setblock ${x} ${y} ${z} minecraft:chest{${stringLootTable}}`);
         },
     //---------------------------------------------------------------------------------------
         /**
@@ -821,14 +865,15 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 server.scheduleInTicks(600,() => {
                     PlayerHasDied.delete(String(player.stringUuid));
                     summonOutTime.delete(String(player.stringUuid));
+                    playerToFieldReflection.delete(playername);
                     player.removeTag(config.tagOrFieldObjName);  //释放玩家状态
                 })
             })
 
-            var difficulty = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+            var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
 
             if (this.shouldGenerateLoot(server ,level ,config.fieldAABB)) {
-                this.generateLootChset(server,config.lootAndWarnBlockPos.x,config.lootAndWarnBlockPos.y,config.lootAndWarnBlockPos.z,difficultyParameter.get(difficulty).stringLootNBT);  //生成箱子
+                this.generateLootChset(server,config.lootAndWarnBlockPos.x,config.lootAndWarnBlockPos.y,config.lootAndWarnBlockPos.z,difficultyParameter.get(difficulty).stringLootTable);  //生成箱子
                 server.scheduleInTicks(2,() => {
                     if (level.getBlock(config.lootAndWarnBlockPos.x,config.lootAndWarnBlockPos.y,config.lootAndWarnBlockPos.z).id == "minecraft:air") {
                         console.error(`奖励箱生成异常!`);
@@ -913,7 +958,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          */
         tryDiscardBossByGlobal : function (server ,level) {
             for (const [id, config] of fieldConfig) { //{[[id1,{...}],[id2,{...}]]},
-                var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+                var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
                 if (!isBossSummoned) continue;
                 var fieldAABB = config.fieldAABB;
                 var xAABBMax = fieldAABB.maxX;
@@ -980,6 +1025,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 if (boss == null) {
                     player.tell(`boss已不存在,即将返回大厅...`);
                     console.warn(`不存在boss`);
+                    playerToFieldReflection.delete(player);
                     player.teleportTo(config.tpBackPos.x(),config.tpBackPos.y(),config.tpBackPos.z());
                     player.removeTag(config.tagOrFieldObjName);
                     single_Ignis.FieldManager.RemoveUselessObj(server,config);
@@ -1020,7 +1066,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          */
         checkAndHandlePlayerCountViolation : function (server,level) {
             for (const [id, config] of fieldConfig) { 
-                var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+                var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
                 if (!isBossSummoned) continue;
                 var isBossReallyExist = false;
                 var entitiesInField = level.getEntitiesWithin(config.fieldAABB);
@@ -1135,7 +1181,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          */
         execAfterPlayerLogout : function (player ,server) {
             var playername = String(player.username);
-            
+            playerToFieldReflection.delete(playername);
             var config = single_Ignis.getConfigManager.getConfigByPlayerTags(player);
             if (config == null) {
                 console.log(`玩家${playername}无登出标签`);
@@ -1178,6 +1224,37 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
         },
     //===============================================================================================
         /**
+         * 这个方法走Internal.LivingHurtEvent事件下的自定义全局LivingHurtHandler方法
+         * @param {Internal.LivingEntity} entity 
+         * @param {DamageSource} source 
+         * @param {number} amount - 受到的原始伤害量
+         * @param {Internal.LivingHurtEvent} event
+         * @returns {void} 
+         */
+        execDamageBoost : function (entity ,source ,amount ,event) {
+            if (entity.isPlayer()) {  //source.acutal可以为null,不允许直接调用actual
+                if (single_Ignis.getConfigManager.getConfigByPlayerTags(entity) == null) {
+                    return;
+                }
+                var difficulty = single_Ignis.GlobalManager.getFieldStatusByPlayerFromCache(entity,"difficulty");
+                if (difficulty == null) {
+                    console.error(`难度获取失败!`);
+                    return;
+                }
+                if (source.actual != null) {
+                    event.setAmount(amount * difficultyParameter.get(difficulty).enemyDamageMultiplier);
+                } else if (source.actual == null) {
+                    if (source.type().msgId() == "magic") {
+                        event.setAmount(amount * difficultyParameter.get(difficulty).extraFireballOrMagicDamageScale);
+                    }
+                    if (source.type().msgId() == "explosion") {
+                        event.setAmount(amount * difficultyParameter.get(difficulty).extraFireballOrExplosionDamageScale);
+                    }
+                }
+            }
+        },
+    //===============================================================================================
+        /**
          * @param {Internal.LivingEntity} entity 
          * @param {Internal.MinecraftServer} server 
          * @param {number} damage 
@@ -1196,7 +1273,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                         console.error(`配置项为空!`);
                         return;
                     }
-                    var difficulty = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+                    var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
                     var currentPlayerHp = entity.health;
                     if (difficulty.match("easy")) return;
                     if (source.actual.persistentData.getInt("isBoss") != 0) {  //为Boss  
@@ -1402,26 +1479,51 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.Level} level
          * @param {string} difficulty
+         * @param {boolean} [useRandomWave]
+         * @param {boolean} [useRandomSpeed]
          * @returns {void}
          */
-        autoSummonIgnisFireball : function (server ,level ,difficulty) {
+        autoSummonIgnisFireball : function (server ,level ,difficulty ,useRandomWave ,useRandomSpeed) {
+            if (useRandomWave == null) {
+                useRandomWave = false;
+            }
+            if (useRandomSpeed == null) {
+                useRandomSpeed = false;
+            }
+            
             for (const [id, config] of fieldConfig) {
-                let isBossSummoned = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+                let isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
                 if (!isBossSummoned) continue;
-                let currentDifficulty = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+                let currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
                 if (!currentDifficulty.match(difficulty)) continue;
                 let currentConfig = config;
                 let maxFireballWave = difficultyParameter.get(currentDifficulty).fireballMaxWaveCount;
-                let extraAccelerationScale = difficultyParameter.get(currentDifficulty).extraFireballAccelerationScale;
+                let maxExtraAccelerationScale = difficultyParameter.get(currentDifficulty).extraFireballAccelerationScale;
                 var finalFireballWave;
-                if (maxFireballWave > 1) {
-                    finalFireballWave = maxFireballWave;
+                var finalExtraAccelerationScale;
+                if (!useRandomWave) {
+                    if (maxFireballWave > 1) {
+                        finalFireballWave = maxFireballWave;
+                    } else {
+                        finalFireballWave = 1;
+                    }
                 } else {
-                    finalFireballWave = 1;
+                    var minFireballWave = maxFireballWave - 2;
+                    if (minFireballWave < 1) {
+                        minFireballWave = 1;
+                    }
+                    finalFireballWave = random.nextInt(minFireballWave,maxFireballWave + 1)  //nextInt(3,5)就是[3,5)
                 }
+                
+                if (!useRandomSpeed) {
+                    finalExtraAccelerationScale = maxExtraAccelerationScale;
+                } else {
+                    finalExtraAccelerationScale = Math.round(random.nextFloat(0,maxExtraAccelerationScale + 0.001) * 100) / 100;
+                }
+
                 for (let wave = 0; wave < finalFireballWave; wave++) {
                     server.scheduleInTicks(10 * wave , () => {
-                        this.summonSingleFireball(level, currentConfig, extraAccelerationScale);
+                        this.summonSingleFireball(level, currentConfig, finalExtraAccelerationScale);
                     })
                 }
             }
@@ -1441,7 +1543,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 
                 var config = single_Ignis.getConfigManager.getConfigByID(source.actual.persistentData.getInt("ID"))
                 if (!debuffLock.has(playerName)) {
-                    var difficulty = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+                    var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
                     var addDebuffFlag = random.nextInt(100) + 1 < difficultyParameter.get(difficulty).debuffProbability ? true : false ;
                     if (addDebuffFlag) {
                         var randomIndex1 = random.nextInt(5);
@@ -1499,20 +1601,21 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             var foreachCount = 0;
             if (!isFinalTurn) {
                 for (const [id ,config] of fieldConfig) { //全局
-                    var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+                    var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
                     if (!isBossSummoned) continue;
-                    if (!single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile).match(difficulty)) continue;
+                    if (!single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile).match(difficulty)) continue;
                     
                     let currentConfig = config; //局部块(不能用var,会提升到全局(只是全局的重新赋值)),规避闭包陷阱(闭包捕获最终对象,如果循环结束后才捕获,那么将全部采用循环结束后的最终值) 
                     /**@type {string} */
-                    let currentDifficulty = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+                    let currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
                     /**@type {boolean} */
-                    let currentBossStatus = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile)
+                    let currentBossStatus = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile)
                     let currentDifficultyParam = difficultyParameter.get(currentDifficulty);
+                    let adjustedDamage = Math.round(currentDifficultyParam.flameStrikeDamage / currentDifficultyParam.extraFireballOrMagicDamageScale);
                     server.scheduleInTicks(5 * foreachCount ,() => {
                         if (currentBossStatus) {
                             for (let i = 0; i < currentDifficultyParam.flameStrikeCount; i++) {
-                                this.generateSingleFlameStrike(level ,currentDifficultyParam.flameStrikeWaitTime ,currentDifficultyParam.flameStrikeDuration ,currentDifficultyParam.flameStrikeDamage ,currentDifficultyParam.flameStrikeRadius ,currentConfig);
+                                this.generateSingleFlameStrike(level ,currentDifficultyParam.flameStrikeWaitTime ,currentDifficultyParam.flameStrikeDuration ,adjustedDamage ,currentDifficultyParam.flameStrikeRadius ,currentConfig);
                             }
                         }
                     })
@@ -1524,14 +1627,21 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     return;
                 }
                 var config = single_Ignis.getConfigManager.getConfigByID(entity);
-                var currentDifficulty = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+                var currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
                 if (currentDifficulty.match("normal")) {
+                    let adjustedDamage = Math.round(15 / difficultyParameter.get(currentDifficulty).extraFireballOrMagicDamageScale);
                     for (var i = 0; i < random.nextInt(5,9); i++) { //大于等于5,小于9
-                        this.generateSingleFlameStrike(level ,100 ,1800 ,15 ,6.5 ,config);
+                        this.generateSingleFlameStrike(level ,100 ,1800 ,adjustedDamage ,5.5 ,config);
                     }
                 } else if (currentDifficulty.match("hard")) {
-                    for (var i = 0; i < random.nextInt(5,9); i++) { //大于等于5,小于9
-                        this.generateSingleFlameStrike(level ,100 ,120000 ,35 ,6.5 ,config);
+                    let adjustedDamage = Math.round(35 / difficultyParameter.get(currentDifficulty).extraFireballOrMagicDamageScale);
+                    for (var i = 0; i < random.nextInt(6,9); i++) { //大于等于6,小于9
+                        this.generateSingleFlameStrike(level ,100 ,120000 ,adjustedDamage ,6.5 ,config);
+                    }
+                } else if (currentDifficulty.match("hell")) {
+                    let adjustedDamage = Math.round(35 / difficultyParameter.get(currentDifficulty).extraFireballOrMagicDamageScale);
+                    for (var i = 0; i < random.nextInt(7,9); i++) { //大于等于7,小于9
+                        this.generateSingleFlameStrike(level ,100 ,120000 ,adjustedDamage ,7 ,config);
                     }
                 }
                 //普通难度,生成5-8持续60秒的  damage 15 realdamage 7
@@ -1578,7 +1688,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     console.error(`配置项为空!`);
                     continue;
                 }
-                var currentDifficulty = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+                var currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+                if (currentDifficulty.match("easy")) return;
                 /**@type {number} */
                 if (remainingTime > 0) {
                     if (currentDifficulty.match("normal")) {
@@ -1613,6 +1724,13 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                                 entity.setHealth(1);
                             })
                             ignis.setHealth(1 + totalHpExist * 1.2);
+                        } else if (currentDifficulty.match("hell")){
+                            var totalHpExist = 0;
+                            level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.persistentData.getInt("isFinalTurn") == 1).forEach(entity => {
+                                totalHpExist += entity.health;
+                                level.spawnParticles("minecraft:soul_fire_flame", false, entity.x, entity.y + 1, entity.z, 1, 1, 1, 1000, 0.8);
+                            })
+                            ignis.setHealth(ignis.health + totalHpExist * 1.2);
                         }
                     })
                     activeBossbarTimer.delete(bossId);
@@ -1666,7 +1784,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 console.error(`配置项为空!`);
                 return;
             }
-            var currentDifficulty = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+            var currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
             var player = level.getNearestPlayer(
                 entity.x, entity.y, entity.z, 60, 
                 p => config.fieldAABB.contains(p.position()) && !p.isSpectator() //在场地内并且不是旁观的(并且在boss50m内的)玩家
@@ -1708,7 +1826,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             var entityUUID = String(entity.stringUuid);
             isBossFinalTurn.set(entityUUID,true);
             var fieldId = entity.persistentData.getInt("ID");
-            var difficulty = single_Ignis.GlobalManager.getFieldStatusFromCache(fieldId,"difficulty",FieldStatusFile);
+            var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(fieldId,"difficulty",FieldStatusFile);
             if (!difficulty.match("easy")) {
                 this.summonRandomFlameStrike(level,server,true,difficulty,entity);
                 this.bossBarTimerInit(server,entity,level);
@@ -2013,29 +2131,68 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
         },
         //---------------------------------------------------------------------------------------
         /**
+         * @param {Internal.Player} player
+         * @param {string} paramName - 你想获取的具体状态值(difficulty|isBossSummoned)
+         * @returns {string | boolean | null}
+         */
+        
+        getFieldStatusByPlayerFromCache : function (player ,paramName) { 
+            var playerName = String(player.username);
+            if (playerToFieldReflection.get(playerName) == null) {
+                console.warn(`无效的操作:该玩家未与场地建立链接,正在尝试建立链接...`);
+                var config = single_Ignis.getConfigManager.getConfigByPlayerTags(player);
+                if (config == null) {
+                    console.error(`无法通过该玩家获取到配置!建立链接失败`);
+                    return null;
+                }
+                var fieldID = config.fieldOrBossId;
+                playerToFieldReflection.set(playerName,fieldID.toString());
+            }
+            
+            var strFieldIDInCache = playerToFieldReflection.get(playerName);
+
+            var detailedStatus = FieldStatusCache.get(strFieldIDInCache);
+            if (detailedStatus == null) {
+                console.error(`该场地配置项不存在,问题id为${strFieldIDInCache}`);
+                return null;
+            }
+            switch (paramName) {
+                case "difficulty":
+                    return String(detailedStatus.difficulty);
+
+                case "isBossSummoned":
+                    return detailedStatus.isBossSummoned;
+
+                default:
+                    console.error(`错误的参数名称`);
+                    return null;
+            }        
+        },
+        //---------------------------------------------------------------------------------------
+        /**
          * @param {number} fieldId
          * @param {string} paramName - 你想获取的具体状态值(目前只有difficulty与isBossSummoned)
          * @param {Internal.Path} jsonPath
          * @returns {string | boolean | null}
          */
         
-        getFieldStatusFromCache : function (fieldId ,paramName ,jsonPath) { 
+        getFieldStatusByIDFromCache : function (fieldId ,paramName ,jsonPath) { 
             var jsonedFieldId = fieldId.toString();
             var tryPullCacheCount = 0;
-            while (fieldStatusCache.size == 0) {
+            while (FieldStatusCache.size == 0) {
                 console.warn(`无效的操作:尝试从空缓存获取内容.即将重新拉取文件内容到缓存`);
-                fieldStatusCache = JsonIO.read(jsonPath);  //不是严格意义的map,但是get()和set()仍然有效
+                FieldStatusCache = JsonIO.read(jsonPath);  //不是严格意义的map,但是get()和set()仍然有效
                 tryPullCacheCount ++;
                 if (tryPullCacheCount >= 5) {
                     console.error(`拉取缓存失败`);
-                    return;
+                    return null;
                 }
             }
 
-            var detailedStatus = fieldStatusCache.get(jsonedFieldId);
+            var detailedStatus = FieldStatusCache.get(jsonedFieldId);
             if (detailedStatus == null) {
                 console.error(`该场地配置项不存在,问题id为${jsonedFieldId}`);
-                return;
+                return null;
             }
             switch (paramName) {
                 case "difficulty":
@@ -2081,7 +2238,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }        
             detailedStatus.add(paramName,content);
             JsonIO.write(jsonPath,fieldStatus);
-            fieldStatusCache = JsonIO.read(jsonPath);
+            FieldStatusCache = JsonIO.read(jsonPath);
         },
     //---------------------------------------------------------------------------------------
         /**
@@ -2094,7 +2251,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             if (config == null) {
                 return false;
             }
-            var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+            var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
             if (isBossSummoned) {
                 return true;
             } else {
@@ -2175,17 +2332,8 @@ EntityEvents.hurt(event => {
 /** @param {Internal.LivingHurtEvent} event */
 global.LivingHurtHandler = event => {  //在受伤之中的最后部分执行
     const {entity ,amount ,source} = event;
-    if (source.actual == null) return;
-    if (source.actual.type != "cataclysm:ignis") return;
-    if (entity.isPlayer()) {
-        var config = single_Ignis.getConfigManager.getConfigByPlayerTags(entity);
-        if (config == null) {
-            console.error(`配置项为空!`);
-            return;
-        }
-        var difficulty = single_Ignis.GlobalManager.getFieldStatusFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
-        event.setAmount(amount * difficultyParameter.get(difficulty).enemyDamageMultiplier);
-    }
+    const {BattleManager} = single_Ignis;
+    BattleManager.execDamageBoost(entity,source,amount,event);
 }
 
 EntityEvents.death(event => {
@@ -2783,3 +2931,20 @@ ItemEvents.entityInteracted("minecraft:snow_block",event => {
         target.setInvulnerable(false);
     }
 })*/
+
+EntityEvents.hurt(event => {
+    const {source,server} = event;
+    if (source.type().msgId() == "magic") {
+        //server.tell(1);
+    } else {
+        server.tell(source.type());
+     //   server.tell(source.actual)
+    }
+})
+
+PlayerEvents.tick(event => {
+    event.player.setInvulnerable(false);
+    //event.player.tell(random.nextFloat(1,3))
+    if (event.server.tickCount % 20 != 0) return;
+    //single_Ignis.BattleManager.autoSummonIgnisFireball(event.server,event.level,"normal");
+})

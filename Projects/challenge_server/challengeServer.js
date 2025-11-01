@@ -2806,7 +2806,7 @@ ItemEvents.dropped(event => {
 })
 
 ServerEvents.commandRegistry(event => {
-    const { commands, arguments } = event;
+    const { commands, arguements } = event;
     event.register(commands.literal("Backintofield")
         .requires(src => src.hasPermission(0))
         .executes(context => {

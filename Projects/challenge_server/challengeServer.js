@@ -87,6 +87,32 @@ const fieldConfig = new Map([  //使用Map集成配置
         fieldAABB : AABB.of(-119,-36,-197,-63,-2,-142),
         battleType : "Singal",
         fieldHeight : -36,
+    }],
+    [10002,{
+        fieldOrBossId : 10002,
+        tagOrFieldObjName : "SingalActive10002",
+        buttonPos : new BlockPos(-93,-46,-361),
+        lootAndWarnBlockPos : new BlockPos(-93,-33,-333),
+        tpToPos : new Vec3d(-75,-34,-333),
+        tpBackPos : new Vec3d(-90,-46,-347),
+        chargeBoxPos : new BlockPos(-91,-35,-333),
+        summonPos : new Vec3d(-92.5,-34,-332.5),
+        fieldAABB : AABB.of(-48,-36,-378,-138,-2,-288),
+        battleType : "Singal",
+        fieldHeight : -36,
+    }],
+    [10003,{
+        fieldOrBossId : 10003,
+        tagOrFieldObjName : "SingalActive10003",
+        buttonPos : new BlockPos(-92,-46,-562),
+        lootAndWarnBlockPos : new BlockPos(-92,-33,-534),
+        tpToPos : new Vec3d(-77,-34,-534),
+        tpBackPos : new Vec3d(-89,-46,-547),
+        chargeBoxPos : new BlockPos(-90,-35,-534),
+        summonPos : new Vec3d(-91.5,-34,-533.5),
+        fieldAABB : AABB.of(-47,-36,-579,-137,-2,-489),
+        battleType : "Singal",
+        fieldHeight : -36,
     }]
 ])
 
@@ -496,8 +522,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 case "minecraft:diamond_pickaxe" :
                     single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"difficulty","hard");
                     return "hard";
-                /*case "minecraft:wooden_pickaxe" :
-                    break;*/
+                case "minecraft:netherite_pickaxe" :
+                    return "hell";
                 default :
                     player.tell("请使用正确的物品召唤!")
                     return null;
@@ -670,9 +696,10 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {Internal.MinecraftServer} server 
          * @param {BlockPos} buttonBlockPos 
          * @param {Internal.Level} level 
+         * @param {Internal.Player} player
          * @returns {boolean} - 是否传送(返回否时终止主函数下的逻辑)
          */
-        TpIntoField : function (server ,buttonBlockPos ,level) {
+        TpIntoField : function (server ,buttonBlockPos ,level ,player) {
             var config = single_Ignis.getConfigManager.getConfigByButtonPos(buttonBlockPos);
             if (config == null) {
                 console.error(`配置项为空!`);
@@ -684,11 +711,9 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 server.runCommandSilent(`/execute positioned ${buttonBlockPos.x} ${buttonBlockPos.y} ${buttonBlockPos.z} run title @a[distance=..5] title "已有玩家在挑战"`);
                 return false;
             } else {
-                var nearestPlayer = level.getNearestPlayer(buttonBlockPos.x,buttonBlockPos.y,buttonBlockPos.z,5,false);  //最后一个boolean表示是否只获取生存玩家
-                if (nearestPlayer == null) {
-                    console.error(`未找到玩家`);
-                    return false;
-                }
+                var nearestPlayer = player;
+                //var nearestPlayer = level.getNearestPlayer(buttonBlockPos.x,buttonBlockPos.y,buttonBlockPos.z,5,false);  //最后一个boolean表示是否只获取生存玩家
+                
                 nearestPlayer.tags.forEach(tag => {
                     if (tag.startsWith("SingalActive")) {
                         nearestPlayer.tags.remove(tag);
@@ -3251,30 +3276,4 @@ ItemEvents.entityInteracted("minecraft:snow_block",event => {
         target.setInvulnerable(false);
     }
 })*/
-
-EntityEvents.hurt(event => {
-    const {source,server} = event;
-    if (source.type().msgId() == "magic") {
-        //server.tell(1);
-    } else {
-        server.tell(source.type().msgId());
-     //   server.tell(source.actual)
-    }
-})
-
-PlayerEvents.tick(event => {
-    const {player,server,level} = event;
-    event.player.setInvulnerable(false);
-    //event.player.tell(random.nextFloat(1,3))
-    if (event.server.tickCount % 20 != 0) return;
-    var Obj = event.server.scoreboard.getObjective("3");
-    //server.tell(server.scoreboard.getOrCreatePlayerScore("你好",Obj).score)
-    server.scoreboard.objectives.forEach(obj => {
-        server.tell(server.scoreboard.getOrCreatePlayerScore("你好",obj).score);
-    })
-    if(level.getEntity("8e0a937b-0f13-41c2-a07a-d46f7e87fc4b") == null){server.tell(`warn`)}
-    player.tell(player.uuid)
-    //server.tell(server.scoreboard.getDisplayObjective(1))
-    //single_Ignis.BattleManager.autoSummonIgnisFireball(event.server,event.level,"normal");
-})
 

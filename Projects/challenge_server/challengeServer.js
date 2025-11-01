@@ -217,29 +217,29 @@ const difficultyParameter = new Map([
         bossSpeedMultiplier : 1.5,
         enemyDamageMultiplier : 4,
         //---
-        fireballCooldown : 150,  
-        fireballMaxWaveCount : 5, 
+        fireballCooldown : 120,  
+        fireballMaxWaveCount : 5, //这里应用3-5波随机出
         extraFireballAccelerationScale : 0.15,
         extraFireballOrMagicDamageScale : 5,  //5则为一次掉4-5HP(全套保护五腾炎甲)
         extraFireballOrExplosionDamageScale : 10,  //10则一次掉0-5HP(全套保护五腾炎甲)
         //---
-        debuffProbability : 85, 
+        debuffProbability : 95, 
         //---
-        realDamageMultiplier : 0.1,
+        realDamageMultiplier : 0.15,
         //---
-        flameSummonCooldown : 160,
-        flameStrikeWaitTime : 30,
-        flameStrikeDuration : 100,
-        flameStrikeDamage : 20,
-        flameStrikeRadius : 6.5,
+        flameSummonCooldown : 140,
+        flameStrikeWaitTime : 16,
+        flameStrikeDuration : 120,
+        flameStrikeDamage : 25,
+        flameStrikeRadius : 7,
         flameStrikeCount : 2,
         //---
         finalServantDmgMultiplier : 0.25,
         //---
-        canBossDecayHealth : 0,
-        bossMaxHealthDecayCount : 0, 
-        servantMaxHealthDecayCount : 4,
-        healthDecayCooldown : 60, 
+        canBossDecayHealth : 1,
+        bossMaxHealthDecayCount : 2, 
+        servantMaxHealthDecayCount : 1,
+        healthDecayCooldown : 50, 
         //---
         stringLootTable : `LootTable:"challenge:chests/hardreward"`
     }]
@@ -261,8 +261,8 @@ const difficultyParameter = new Map([
 /**
  * @typedef {Object} DifficultyConfig
  * @property {MonsterConfig} cataclysm_ignited_revenant - 焰魔仆从配置
- * @property {MonsterConfig} minecraft_piglin_brute - 猪灵蛮兵配置
- * @property {MonsterConfig} minecraft_phantom - 幻翼配置
+ * @property {MonsterConfig} [minecraft_piglin_brute] - 猪灵蛮兵配置
+ * @property {MonsterConfig} [minecraft_phantom] - 幻翼配置
  */
 
 /**
@@ -332,6 +332,17 @@ const ServantMonsterConfig = new Map([  //需要免疫非玩家伤害(魔法和�
             isFinalTurn : 1,  
             summonCount : 2
         }
+    }],
+    ["hell",{
+        cataclysm_ignited_revenant : {
+            entityType : "cataclysm:ignited_revenant",
+            HP : 200,
+            bulletDamageMultiplier : 0.35,
+            followPlayerRange : 50,
+            PersistenceRequired : 1,  //防止自然消失(使用mergeNBT设置)
+            canDecayHealth : 1,
+            summonCount : 4 //生成3只
+        },
     }]
 ])
 //END
@@ -344,6 +355,7 @@ const ServantMonsterConfig = new Map([  //需要免疫非玩家伤害(魔法和�
  * @property {string} effectionfakeEnPlayerName - 效果的英文名
  * @property {string} effectionfakeCnPlayerName - 效果的中文名
  * @property {number} maxLevel - 最大层数
+ * @property {number} decayTime - 衰减时间(tick)
  **/
 
 /**@typedef {Map<string,effectionDetails>} customEffections*/
@@ -355,12 +367,14 @@ const customEffections = new Map([
         ObjDisplayName : "自定义效果",
         effectionfakeEnPlayerName : "basicConfig",
         effectionfakeCnPlayerName : "基本设置",
-        maxLevel : 0
+        maxLevel : 0,
+        decayTime : 0
     }],
     ["deepWound",{
         effectionfakeEnPlayerName : "deepWound",
         effectionfakeCnPlayerName : "深层创伤",
-        maxLevel : 10
+        maxLevel : 10,
+        decayTime : 200
     }]
 ])
 
@@ -718,6 +732,9 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
 
             this.addPlayerToObj(server ,playername ,config.tagOrFieldObjName ,1);  //锁定有一个玩家在战斗中
             playerToFieldReflection.set(playername,config.fieldOrBossId.toString());
+
+            single_Ignis.CustomEffectionManager.customEffectionsInit(server,config.fieldOrBossId);
+
             var flameCountDown = level.createEntity("cataclysm:flame_strike");
             flameCountDown.mergeNbt(`{WaitTime:100,Duration:0}`);
             flameCountDown.mergeNbt(`{Radius:5,is_soul:1}`);
@@ -786,7 +803,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 return;
             }
             entity.removeTag(config.tagOrFieldObjName);  //清除玩家队伍,之后boss被discard
-            this.RemoveUselessObj(server,config);
+            single_Ignis.GlobalManager.RemoveUselessObj(server,config);
             playerToFieldReflection.delete(String(entity.username));
             PlayerHasDied.delete(String(entity.stringUuid));
             entity.tell(`请再接再厉!`);
@@ -931,7 +948,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             server.scheduleInTicks(600,() => {
                 this.resetFieldByID(server,level,config);
 
-                this.RemoveUselessObj(server,config);  //释放场地(忙碌)状态
+                single_Ignis.GlobalManager.RemoveUselessObj(server,config);  //释放场地(忙碌)状态
             })
         },
     //---------------------------------------------------------------------------------------
@@ -1020,18 +1037,6 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 server.runCommandSilent(`/forceload remove ${xAABBMax} ${zAABBMax} ${xAABBMin} ${zAABBMin}`);
             }
         },
-    //----------------------------------------------------------------------------------
-        /**
-         * @param {Internal.MinecraftServer} server
-         * @param {configDetails} config
-         * @returns {void}
-         */
-        RemoveUselessObj : function (server,config) {
-            var Obj = server.scoreboard.getObjective(config.tagOrFieldObjName);
-            if (Obj != null) {
-                server.scoreboard.removeObjective(Obj);
-            }
-        },
     //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.CommandSourceStack} source
@@ -1061,7 +1066,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     playerToFieldReflection.delete(player);
                     player.teleportTo(config.tpBackPos.x(),config.tpBackPos.y(),config.tpBackPos.z());
                     player.removeTag(config.tagOrFieldObjName);
-                    single_Ignis.FieldManager.RemoveUselessObj(server,config);
+                    single_Ignis.GlobalManager.RemoveUselessObj(server,config);
                     return;
                 }
                 var bossUUID = String(boss.stringUuid);
@@ -1230,7 +1235,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 player.teleportTo(config.tpBackPos.x(),config.tpBackPos.y(),config.tpBackPos.z());
                 player.tags.remove(config.tagOrFieldObjName);
                 player.addTag("Exited");
-                single_Ignis.FieldManager.RemoveUselessObj(server,config);
+                single_Ignis.GlobalManager.RemoveUselessObj(server,config);
                 PlayerHasDied.delete(String(player.stringUuid));
             }  //战斗中退出传送
         }
@@ -1244,7 +1249,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @returns {void}
          */
         customEffectionsInit : function (server ,fieldId) { 
-            var basicConfigParams = customEffections.get("basicConfig")
+            var basicConfigParams = customEffections.get("basicConfig");
             var finalObjName = basicConfigParams.ObjName + fieldId;
             var customEffectionObj = server.scoreboard.getObjective(finalObjName);
             if (customEffectionObj == null) {
@@ -1321,31 +1326,67 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
         },
     //===============================================================================================
         /**
+         * 外部时钟一秒计时一次,内部时钟应为外部时钟的整数倍
          * @param {Internal.MinecraftServer} server 
          * @returns {void}
          */
         execCustomEffectionLevelWhenTick : function (server) {
             var deepWoundParams = customEffections.get("deepWound")
             var customEffectionsObjName = customEffections.get("basicConfig").ObjName;
-
-            server.scoreboard.objectives.filter(obj => obj.name.startsWith(customEffectionsObjName)).forEach(customEffObj => {
-                var deepWoundLevel = server.scoreboard.getOrCreatePlayerScore(deepWoundParams.effectionfakeCnPlayerName,customEffObj).score;
-                var newDeepWoundLevel = Math.floor(deepWoundLevel * 2 / 3);
-                if (newDeepWoundLevel <= 0) {
-                    newDeepWoundLevel = 0;
+            var customEffObjList = server.scoreboard.objectives.filter(obj => obj.name.startsWith(customEffectionsObjName))
+            for (const customEffObj of customEffObjList) {
+                if (server.tickCount % deepWoundParams.decayTime == 0) {
+                    var deepWoundLevel = server.scoreboard.getOrCreatePlayerScore(deepWoundParams.effectionfakeCnPlayerName,customEffObj).score;
+                    var newDeepWoundLevel = Math.floor(deepWoundLevel * 2 / 3);
+                    if (newDeepWoundLevel <= 0) {
+                        newDeepWoundLevel = 0;
+                    }
+                    if (newDeepWoundLevel != deepWoundLevel) {
+                        server.runCommandSilent(`/scoreboard players set ${deepWoundParams.effectionfakeCnPlayerName} ${customEffObj.name} ${newDeepWoundLevel}`);
+                    }
                 }
-                if (newDeepWoundLevel != deepWoundLevel) {
-                    server.runCommandSilent(`/scoreboard players set ${deepWoundParams.effectionfakeCnPlayerName} ${customEffObj.name} ${newDeepWoundLevel}`);
-                }
-            })
+            }
         },
     //===============================================================================================
         /**
+         * 两秒渲染一次
          * @param {Internal.MinecraftServer} server 
          * @returns {void}
          */
         renderingEffToActionbar : function (server) {
-            
+            var customEffectionsObjName = customEffections.get("basicConfig").ObjName;
+            for (const [playerName ,strFieldId] of playerToFieldReflection) {
+                let numberId = Number(strFieldId);
+                let config = single_Ignis.getConfigManager.getConfigByID(numberId);
+                if (config == null) {
+                    console.error(`配置项不存在!`);
+                    continue;
+                }
+                let stringBuffSituation = "";
+                let finalObjName = customEffectionsObjName + strFieldId;
+                let customEffObj = server.scoreboard.getObjective(finalObjName);
+                if (customEffObj == null) {
+                    console.error(`玩家对应的场地的计分板异常!`);
+                    continue;
+                }
+                for (const [type ,effDetails] of customEffections) {
+                    if (type == "basicConfig") continue;
+                    let typeName = effDetails.effectionfakeCnPlayerName;
+                    let score = server.scoreboard.getOrCreatePlayerScore(effDetails.effectionfakeCnPlayerName,customEffObj).score;
+                    if (score == 0) {
+                        continue;
+                    } else if (score > 0 && score <= 3) {
+                        score = "\u00a7a" + score + "\u00a7f";
+                    } else if (score >3 && score <=7) {
+                        score = "\u00a7e" + score + "\u00a7f";
+                    } else {
+                        score = "\u00a7c" + score + "\u00a7f";
+                    }
+                    stringBuffSituation += typeName + ":" + score + "  ";
+                }
+                stringBuffSituation = stringBuffSituation.trim();
+                server.runCommandSilent(`/title ${playerName} actionbar {"text":"${stringBuffSituation}"}`);
+            }
         },
     //===============================================================================================
         /**
@@ -2445,6 +2486,24 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             } else {
                 return false;
             }
+        },
+    //----------------------------------------------------------------------------------
+        /**
+         * @param {Internal.MinecraftServer} server
+         * @param {configDetails} config
+         * @returns {void}
+         */
+        RemoveUselessObj : function (server,config) {
+            var basicConfigParams = customEffections.get("basicConfig");
+            var finalObjName = basicConfigParams.ObjName + config.fieldOrBossId;
+            var Obj1 = server.scoreboard.getObjective(config.tagOrFieldObjName);
+            var Obj2 = server.scoreboard.getObjective(finalObjName);
+            if (Obj1 != null) {
+                server.scoreboard.removeObjective(Obj1);
+            }
+            if (Obj2 != null) {
+                server.scoreboard.removeObjective(Obj2);
+            }
         }
     }
 }
@@ -2500,6 +2559,7 @@ EntityEvents.hurt(event => {
         if (source.actual != null) {
             BattleManager.execRealDamage(entity,server,damage,source,level,event);
         }   //玩家boss开启时请注释掉这部分,或者以后需要重写玩家boss
+        CustomEffectionManager.execCustomEffectionLevelWhenHurt(entity,server,source);
     } else if (entity.type == "cataclysm:ignis") {
         BattleManager.execIgnisStageChange(entity,server,level);
         BattleManager.execIgnisGetAttacked(entity);
@@ -2574,7 +2634,7 @@ PlayerEvents.tick(event => {
 
 ServerEvents.tick(event => {
     const {server} = event;
-    const {GlobalManager ,BattleManager ,FieldManager} = single_Ignis;
+    const {GlobalManager ,BattleManager ,FieldManager ,CustomEffectionManager} = single_Ignis;
     if (rightClickCooldown > 0) {
         rightClickCooldown -= 1;
     }
@@ -2593,10 +2653,14 @@ ServerEvents.tick(event => {
     if (server.tickCount % 60 == 0) {
         GlobalManager.removeBannedEntity(server);
     }
+    if (server.tickCount % 40 == 0) {
+        CustomEffectionManager.renderingEffToActionbar(server);
+    }
     if (server.tickCount % 20 == 0) {
         GlobalManager.removeBannedEffect(server);
         BattleManager.autoIgnisRegeneration(server);
         BattleManager.bossBarTimerCountDown(server,overworld);
+        CustomEffectionManager.execCustomEffectionLevelWhenTick(server);
     }
 
     if (server.tickCount % difficultyParameter.get("easy").fireballCooldown == 0) {

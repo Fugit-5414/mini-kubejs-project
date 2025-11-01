@@ -29,7 +29,7 @@ var debuffType = [
     {id:"minecraft:blindness",duration:3 * 20,lvl:0}
 ];
 
-var holdOnTime = 90; //亡语坚持时间
+var HOLD_ON_TIME_IN_SECONDS = 90; //亡语坚持时间
 
 var clearIllegalBossCooldown = 20 //tick
 
@@ -241,7 +241,7 @@ const difficultyParameter = new Map([
         servantMaxHealthDecayCount : 1,
         healthDecayCooldown : 50, 
         //---
-        stringLootTable : `LootTable:"challenge:chests/hardreward"`
+        stringLootTable : `LootTable:"challenge:chests/hardreward"` //暂时拿困难的顶替
     }]
 ])
 
@@ -263,6 +263,7 @@ const difficultyParameter = new Map([
  * @property {MonsterConfig} cataclysm_ignited_revenant - 焰魔仆从配置
  * @property {MonsterConfig} [minecraft_piglin_brute] - 猪灵蛮兵配置
  * @property {MonsterConfig} [minecraft_phantom] - 幻翼配置
+ * @property {MonsterConfig} [cataclysm_the_harbinger] - 先驱者配置
  */
 
 /**
@@ -343,6 +344,16 @@ const ServantMonsterConfig = new Map([  //需要免疫非玩家伤害(魔法和�
             canDecayHealth : 1,
             summonCount : 4 //生成3只
         },
+        cataclysm_the_harbinger : {
+            entityType : "cataclysm:the_harbinger",
+            HP : 350, //待测试
+            bulletDamageMultiplier : 0.5, //待测试
+            followPlayerRange : 50,
+            PersistenceRequired : 1,
+            canDecayHealth : 1,  //吃到伤害直接掉四分之一HP
+            isFinalTurn : 1,  
+            summonCount : 1
+        }
     }]
 ])
 //END
@@ -540,7 +551,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          */
         getConfigByObjName : function (tagOrObjName) {  //根据ObjName获取配置项(或许有时候玩家tag已知时也可以用)
             for (const [id, config] of fieldConfig) { 
-                if (config.tagOrFieldObjName.match(tagOrObjName)) {
+                if (config.tagOrFieldObjName == tagOrObjName) {
                     return config;
                 }
             }
@@ -748,7 +759,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 /** @type {Internal.LivingEntity} */
                 var singleIgnis = level.createEntity("cataclysm:ignis");
                 var entityUUID = String(singleIgnis.stringUuid);
-                if (difficulty.match("easy")) {
+                if (difficulty == "easy") {
                     singleIgnis.setMaxHealth(750);
                     singleIgnis.setHealth(750);
                 } else {
@@ -1502,7 +1513,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     }
                     var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
                     var currentPlayerHp = entity.health;
-                    if (difficulty.match("easy")) return;
+                    if (difficulty == "easy") return;
                     if (source.actual.persistentData.getInt("isBoss") != 0) {  //为Boss  
                         if (source.actual.health < source.actual.maxHealth / 3) { 
                             var realDamage = damage * difficultyParameter.get(difficulty).enemyDamageMultiplier * difficultyParameter.get(difficulty).realDamageMultiplier;
@@ -1588,7 +1599,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             if (entity.health < entity.maxHealth/3*2 && !IIStageIgnis.has(entityUUID) && !IIIStageIgnis.has(entityUUID) && !(entity.persistentData.getInt("isBoss") == 0)) {
                 IIStageIgnis.set(entityUUID,1);
                 maxRegenationHp.set(entityUUID,(entity.maxHealth / 3) * 2);
-                if (!entity.persistentData.get("difficulty").asString.match("easy")) {
+                if (!entity.persistentData.get("difficulty").asString == "easy") {
                     this.summonServantMonster(server,level,entity,false);
                 }
             }
@@ -1597,7 +1608,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 maxRegenationHp.set(entityUUID,entity.maxHealth / 3);
                 IIIStageIgnis.set(entityUUID,1);
                 IIStageIgnis.delete(entityUUID);
-                if (!entity.persistentData.get("difficulty").asString.match("easy")) {
+                if (!entity.persistentData.get("difficulty").asString == "easy") {
                     this.summonServantMonster(server,level,entity,false);
                 }
                 server.scheduleInTicks(300,() => {
@@ -1634,7 +1645,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
         autoIgnisRegeneration : function (server) {
             var ignies = server.entities.filter(entities => entities.type == "cataclysm:ignis")
             for (const ignis of ignies) {
-                if (ignis.persistentData.get("difficulty").asString.match("easy")) continue;
+                if (ignis.persistentData.get("difficulty").asString == "easy") continue;
                 var entityUUID = String(ignis.stringUuid);
                 if (maxRegenationHp.has(entityUUID) && ignis.health < maxRegenationHp.get(entityUUID) && ignis.isAlive()) {    
                     ignis.setHealth(ignis.health + 2);
@@ -1722,7 +1733,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 let isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
                 if (!isBossSummoned) continue;
                 let currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
-                if (!currentDifficulty.match(difficulty)) continue;
+                if (!(currentDifficulty == difficulty)) continue;
                 let currentConfig = config;
                 let maxFireballWave = difficultyParameter.get(currentDifficulty).fireballMaxWaveCount;
                 let maxExtraAccelerationScale = difficultyParameter.get(currentDifficulty).extraFireballAccelerationScale;
@@ -1780,7 +1791,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                             randomIndex2 = random.nextInt(5);
                         }
                         entity.addEffect(new MobEffectInstance(debuffType[randomIndex1].id,debuffType[randomIndex1].duration,debuffType[randomIndex1].lvl,false,false));
-                        if (difficulty.match("hard")) {
+                        if (difficulty == "hard") {
                             entity.addEffect(new MobEffectInstance(debuffType[randomIndex2].id,debuffType[randomIndex2].duration,debuffType[randomIndex2].lvl,false,false));
                         }
                         debuffLock.set(playerName,true);
@@ -1831,7 +1842,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 for (const [id ,config] of fieldConfig) { //全局
                     var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
                     if (!isBossSummoned) continue;
-                    if (!single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile).match(difficulty)) continue;
+                    if (!(single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile) == difficulty)) continue;
                     
                     let currentConfig = config; //局部块(不能用var,会提升到全局(只是全局的重新赋值)),规避闭包陷阱(闭包捕获最终对象,如果循环结束后才捕获,那么将全部采用循环结束后的最终值) 
                     /**@type {string} */
@@ -1856,17 +1867,17 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 }
                 var config = single_Ignis.getConfigManager.getConfigByID(entity);
                 var currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
-                if (currentDifficulty.match("normal")) {
+                if (currentDifficulty == "normal") {
                     let adjustedDamage = Math.round(15 / difficultyParameter.get(currentDifficulty).extraFireballOrMagicDamageScale);
                     for (var i = 0; i < random.nextInt(5,9); i++) { //大于等于5,小于9
                         this.generateSingleFlameStrike(level ,100 ,1800 ,adjustedDamage ,5.5 ,config);
                     }
-                } else if (currentDifficulty.match("hard")) {
+                } else if (currentDifficulty == "hard") {
                     let adjustedDamage = Math.round(35 / difficultyParameter.get(currentDifficulty).extraFireballOrMagicDamageScale);
                     for (var i = 0; i < random.nextInt(6,9); i++) { //大于等于6,小于9
                         this.generateSingleFlameStrike(level ,100 ,120000 ,adjustedDamage ,6.5 ,config);
                     }
-                } else if (currentDifficulty.match("hell")) {
+                } else if (currentDifficulty == "hell") {
                     let adjustedDamage = Math.round(35 / difficultyParameter.get(currentDifficulty).extraFireballOrMagicDamageScale);
                     for (var i = 0; i < random.nextInt(7,9); i++) { //大于等于7,小于9
                         this.generateSingleFlameStrike(level ,100 ,120000 ,adjustedDamage ,7 ,config);
@@ -1891,15 +1902,15 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 return;
             }
             entity.setInvulnerable(true);
-            server.runCommandSilent(`/bossbar add ${bossID} [{"text":"坚持住!还有","color":"yellow"},{"text":"${holdOnTime}","color":"red"},{"text":"秒结束战斗","color":"yellow"}]`)     
-            server.runCommandSilent(`/bossbar set minecraft:${bossID} max ${holdOnTime}`);
-            server.runCommandSilent(`/bossbar set minecraft:${bossID} value ${holdOnTime}`);
+            server.runCommandSilent(`/bossbar add ${bossID} [{"text":"坚持住!还有","color":"yellow"},{"text":"${HOLD_ON_TIME_IN_SECONDS}","color":"red"},{"text":"秒结束战斗","color":"yellow"}]`)     
+            server.runCommandSilent(`/bossbar set minecraft:${bossID} max ${HOLD_ON_TIME_IN_SECONDS}`);
+            server.runCommandSilent(`/bossbar set minecraft:${bossID} value ${HOLD_ON_TIME_IN_SECONDS}`);
             server.runCommandSilent(`/bossbar set minecraft:${bossID} color red`);
             level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "minecraft:player").forEach(player => {
                 server.runCommandSilent(`/bossbar set minecraft:${bossID} players ${String(player.username)}`);
             })
             if (!activeBossbarTimer.has(bossID)) {
-                activeBossbarTimer.set(bossID ,holdOnTime);
+                activeBossbarTimer.set(bossID ,HOLD_ON_TIME_IN_SECONDS);
             }
         },
     //---------------------------------------------------------------------------------------
@@ -1917,15 +1928,18 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     continue;
                 }
                 var currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
-                if (currentDifficulty.match("easy")) return;
+                if (currentDifficulty == "easy") return;
                 /**@type {number} */
                 if (remainingTime > 0) {
-                    if (currentDifficulty.match("normal")) {
+                    if (currentDifficulty == "normal") {
                         server.runCommandSilent(`/bossbar set minecraft:${bossId} value ${remainingTime}`);
                         server.runCommandSilent(`/bossbar set minecraft:${bossId} name [{"text":"坚持住!还有","color":"yellow"},{"text":"${remainingTime}","color":"red"},{"text":"秒结束战斗","color":"yellow"}]`);
-                    } else if (currentDifficulty.match("hard")) {
+                    } else if (currentDifficulty == "hard") {
                         server.runCommandSilent(`/bossbar set minecraft:${bossId} value ${remainingTime}`);
-                        server.runCommandSilent(`/bossbar set minecraft:${bossId} name [{"text":"请在","color":"yellow"},{"text":"${remainingTime}","color":"red"},{"text":"秒内杀死全部仆从怪物","color":"yellow"}]`);
+                        server.runCommandSilent(`/bossbar set minecraft:${bossId} name [{"text":"请在","color":"yellow"},{"text":"${remainingTime}","color":"red"},{"text":"秒内杀死全部仆从怪物并等待结束","color":"yellow"}]`);
+                    } else if (currentDifficulty == "hell") {
+                        server.runCommandSilent(`/bossbar set minecraft:${bossId} value ${remainingTime}`);
+                        server.runCommandSilent(`/bossbar set minecraft:${bossId} name [{"text":"请在","color":"yellow"},{"text":"${remainingTime}","color":"red"},{"text":"秒内杀死全部仆从怪物并等待结束","color":"yellow"}]`);
                     }
                     
                     if (remainingTime < 20) {
@@ -1940,11 +1954,11 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "cataclysm:ignis").forEach(ignis => {
                         var player = level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "minecraft:player").getFirst();
                         ignis.setInvulnerable(false);
-                        if (currentDifficulty.match("normal")) {
+                        if (currentDifficulty == "normal") {
                             server.scheduleInTicks(1,() => {
                                 server.runCommandSilent(`/damage ${String(ignis.uuid)} 99999 minecraft:generic by ${String(player.username)}`);
                             })
-                        } else if (currentDifficulty.match("hard")) {
+                        } else if (currentDifficulty == "hard") {
                             var totalHpExist = 0;
                             level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.persistentData.getInt("isFinalTurn") == 1).forEach(entity => {
                                 totalHpExist += entity.health;
@@ -1952,13 +1966,13 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                                 entity.setHealth(1);
                             })
                             ignis.setHealth(1 + totalHpExist * 1.2);
-                        } else if (currentDifficulty.match("hell")){
+                        } else if (currentDifficulty == "hell") {
                             var totalHpExist = 0;
                             level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.persistentData.getInt("isFinalTurn") == 1).forEach(entity => {
                                 totalHpExist += entity.health;
                                 level.spawnParticles("minecraft:soul_fire_flame", false, entity.x, entity.y + 1, entity.z, 1, 1, 1, 1000, 0.8);
                             })
-                            ignis.setHealth(ignis.health + totalHpExist * 1.2);
+                            ignis.setHealth(ignis.health + totalHpExist * 1.4);
                         }
                     })
                     activeBossbarTimer.delete(bossId);
@@ -1982,8 +1996,11 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             newServant.setMaxHealth(servant.HP);
             newServant.setHealth(servant.HP);
             newServant.setPos(pos);
-            if (servant.entityType == "minecraft:phantom") {
+            if (servant.entityType == "minecraft:phantom" || servant.entityType == "cataclysm:the_harbinger") {
                 newServant.setPos(pos.x(), pos.y() + 5, pos.z());
+            }
+            if (servant.entityType == "cataclysm:the_harbinger") {
+                newServant.mergeNbt(`{isBoss:1}`);
             }
             newServant.mergeNbt(`{PersistenceRequired:${servant.PersistenceRequired}}`);
             newServant.setAttributeBaseValue("tacz:tacz.bullet_resistance",1 - servant.bulletDamageMultiplier);
@@ -2019,24 +2036,36 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             );
             var playerName = String(player.username);
             if (!isFinalTurn) {
-                if (currentDifficulty.match("easy")) return;
+                if (currentDifficulty == "easy") return;
                 var servantRevenant = ServantMonsterConfig.get(currentDifficulty).cataclysm_ignited_revenant;  
                 for (var i = 0; i < servantRevenant.summonCount ; i++) {
                     /**@type {Internal.LivingEntity} */
                     this.summonSingleServant(server,config.summonPos,servantRevenant,level,false,playerName);
                 }
             } else {
-                if (currentDifficulty.match("easy")) return;
+                if (currentDifficulty == "easy") return;
                 var servantPiglin = ServantMonsterConfig.get(currentDifficulty).minecraft_piglin_brute;
-                for (var i = 0; i < servantPiglin.summonCount ; i++) {
-                    /**@type {Internal.LivingEntity} */
-                    this.summonSingleServant(server,config.summonPos,servantPiglin,level,true,playerName);
+                if (servantPiglin != null) {
+                    for (var i = 0; i < servantPiglin.summonCount ; i++) {
+                        /**@type {Internal.LivingEntity} */
+                        this.summonSingleServant(server,config.summonPos,servantPiglin,level,true,playerName);
+                    }
                 }
 
                 var servantPhantom = ServantMonsterConfig.get(currentDifficulty).minecraft_phantom;
-                for (var i = 0; i < servantPhantom.summonCount ; i++) {
-                    /**@type {Internal.LivingEntity} */
-                    this.summonSingleServant(server,config.summonPos,servantPhantom,level,false,playerName);
+                if (servantPhantom != null) {
+                    for (var i = 0; i < servantPhantom.summonCount ; i++) {
+                        /**@type {Internal.LivingEntity} */
+                        this.summonSingleServant(server,config.summonPos,servantHarbinger,level,true,playerName);
+                    }
+                }
+                
+                var servantHarbinger = ServantMonsterConfig.get(currentDifficulty).cataclysm_the_harbinger;
+                if (servantHarbinger != null) {
+                    for (var i = 0; i < servantHarbinger.summonCount ; i++) {
+                        /**@type {Internal.LivingEntity} */
+                        this.summonSingleServant(server,config.summonPos,servantPiglin,level,true,playerName);
+                    }
                 }
             }
         },
@@ -2050,12 +2079,12 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          */
         execFinalTurn : function (entity ,server ,level) {
             entity.setHealth(1);
-            entity.setAttributeBaseValue("minecraft:generic.movement_speed",0.3);
+            entity.setAttributeBaseValue("minecraft:generic.movement_speed",0.33);
             var entityUUID = String(entity.stringUuid);
             isBossFinalTurn.set(entityUUID,true);
             var fieldId = entity.persistentData.getInt("ID");
             var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(fieldId,"difficulty",FieldStatusFile);
-            if (!difficulty.match("easy")) {
+            if (!difficulty == "easy") {
                 this.summonRandomFlameStrike(level,server,true,difficulty,entity);
                 this.bossBarTimerInit(server,entity,level);
                 this.summonServantMonster(server,level,entity,true);

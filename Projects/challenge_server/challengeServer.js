@@ -1388,7 +1388,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
         execCustomEffectionLevelWhenTick : function (server) {
             var deepWoundParams = customEffections.get("deepWound")
             var customEffectionsObjName = customEffections.get("basicConfig").ObjName;
-            var customEffObjList = server.scoreboard.objectives.filter(obj => obj.name.startsWith(customEffectionsObjName))
+            var customEffObjList = server.scoreboard.objectives.stream().filter(obj => obj.name.startsWith(customEffectionsObjName)).toArray();  //应用jdk8引入的Stream操作,最终以数组收集
             for (const customEffObj of customEffObjList) {
                 if (server.tickCount % deepWoundParams.decayTime == 0) {
                     var deepWoundLevel = server.scoreboard.getOrCreatePlayerScore(deepWoundParams.effectionfakeCnPlayerName,customEffObj).score;

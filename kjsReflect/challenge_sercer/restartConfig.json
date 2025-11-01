@@ -1,0 +1,10 @@
+{
+    "restart_times": [],
+    "warning_minutes": [
+        5,
+        3,
+        1
+    ],
+    "timezone": 8,
+    "server": "Challenge"
+}

@@ -813,14 +813,10 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 console.error(`配置项为空!`);
                 return;
             }
-            entity.removeTag(config.tagOrFieldObjName);  //清除玩家队伍,之后boss被discard
-            single_Ignis.GlobalManager.RemoveUselessObj(server,config);
-            playerToFieldReflection.delete(String(entity.username));
-            PlayerHasDied.delete(String(entity.stringUuid));
             entity.tell(`请再接再厉!`);
-            summonOutTime.delete(String(entity.stringUuid));
             this.tryDiscardBossByPlayer(server,entity,level);
             this.resetFieldByID(server,level,config);
+            single_Ignis.GlobalManager.clearAllUselessParams(server,config,entity);
             return;
         },
     //---------------------------------------------------------------------------------------
@@ -924,10 +920,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 player.setInvulnerable(true);
                 
                 server.scheduleInTicks(600,() => {
-                    PlayerHasDied.delete(String(player.stringUuid));
-                    summonOutTime.delete(String(player.stringUuid));
-                    playerToFieldReflection.delete(playername);
-                    player.removeTag(config.tagOrFieldObjName);  //释放玩家状态
+                    single_Ignis.GlobalManager.clearAllUselessParams(server,config,player);
                 })
             })
 
@@ -958,8 +951,6 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             
             server.scheduleInTicks(600,() => {
                 this.resetFieldByID(server,level,config);
-
-                single_Ignis.GlobalManager.RemoveUselessObj(server,config);  //释放场地(忙碌)状态
             })
         },
     //---------------------------------------------------------------------------------------
@@ -1074,10 +1065,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 if (boss == null) {
                     player.tell(`boss已不存在,即将返回大厅...`);
                     console.warn(`不存在boss`);
-                    playerToFieldReflection.delete(player);
                     player.teleportTo(config.tpBackPos.x(),config.tpBackPos.y(),config.tpBackPos.z());
-                    player.removeTag(config.tagOrFieldObjName);
-                    single_Ignis.GlobalManager.RemoveUselessObj(server,config);
+                    single_Ignis.GlobalManager.clearAllUselessParams(server,config,player);
                     return;
                 }
                 var bossUUID = String(boss.stringUuid);
@@ -1091,6 +1080,13 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                         server.scheduleInTicks(100 ,() => {
                             backingFieldPlayerList.delete(playername);
                             var correctHp = bossHpWhenPlayerUseCmd.get(bossUUID);
+                            var currentBoss = level.getEntity(boss.uuid);
+                            if (currentBoss.isRemoved() || currentBoss == null) {
+                                player.tell(`boss状态异常,已返回大厅`);
+                                console.warn(`不存在boss,可能被异常移除`);
+                                single_Ignis.GlobalManager.clearAllUselessParams(server,config,player);
+                                player.teleportTo(config.tpBackPos.x(),config.tpBackPos.y(),config.tpBackPos.z());
+                            }
                             boss.setHealth(correctHp);
                             bossHpWhenPlayerUseCmd.delete(bossUUID);
                             if (player != null) {
@@ -1244,15 +1240,35 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             if (player.tags.contains(config.tagOrFieldObjName) && server.scoreboard.hasPlayerScore(playername,Obj)) {
                 single_Ignis.FieldManager.tryDiscardBossByPlayer(server,player,overworld);
                 player.teleportTo(config.tpBackPos.x(),config.tpBackPos.y(),config.tpBackPos.z());
-                player.tags.remove(config.tagOrFieldObjName);
                 player.addTag("Exited");
-                single_Ignis.GlobalManager.RemoveUselessObj(server,config);
-                PlayerHasDied.delete(String(player.stringUuid));
+                single_Ignis.GlobalManager.clearAllUselessParams(server,config,player);
             }  //战斗中退出传送
         }
     },
     /**管理自定义buff/debuff的方法 */
     CustomEffectionManager: {  
+        /**
+         * @param {Internal.MinecraftServer} server 
+         * @param {configDetails} [config]
+         * @param {number} [fieldId]
+         * @returns {Internal.Objective | null}
+         */
+        getCustomEffectionsScoreboard : function (server ,config ,fieldId) { 
+            var currentFieldId;
+            if (config != null) {
+                currentFieldId = config.fieldOrBossId;
+            } else if (config == null && fieldId != null) {
+                currentFieldId = fieldId;
+            } else {
+                console.error(`无法获取到场地ID`);
+                return null;
+            }
+            var customEffectionsObjName = customEffections.get("basicConfig").ObjName;
+            var finalObjName = customEffectionsObjName + currentFieldId;
+            var obj = server.scoreboard.getObjective(finalObjName);
+            return obj;
+        },
+    //===============================================================================================
         /**
          * 战斗即将开始时,初始化自定义效果计分板(与场地绑定)
          * @param {Internal.MinecraftServer} server 
@@ -1267,19 +1283,25 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 server.runCommandSilent(`/scoreboard objectives add ${finalObjName} dummy "${basicConfigParams.ObjDisplayName}"`);
                 console.log(`自定义效果计分板初始化完成`);
             }
-            this.deepWoundInit(server ,finalObjName);
+            server.scheduleInTicks(1 ,() => {
+                customEffectionObj = this.getCustomEffectionsScoreboard(server,null,fieldId);
+                if (customEffectionObj == null) {
+                    console.error(`计分板异常!`);
+                    return;
+                }
+                this.deepWoundInit(server ,customEffectionObj);
+            })
         },
     //===============================================================================================
         /**
          * @param {Internal.MinecraftServer} server 
-         * @param {string} customEffObjName
+         * @param {Internal.Objective} customEffObj
          * @returns {void}
          */
-        deepWoundInit : function (server ,customEffObjName) {
+        deepWoundInit : function (server ,customEffObj) {
             var deepWoundParams = customEffections.get("deepWound");
-            var obj = server.scoreboard.getObjective(customEffObjName);
-            if (!server.scoreboard.hasPlayerScore(deepWoundParams.effectionfakeCnPlayerName,obj)) {
-                server.runCommandSilent(`/scoreboard players set ${deepWoundParams.effectionfakeCnPlayerName} ${customEffObjName} 0`);
+            if (!server.scoreboard.hasPlayerScore(deepWoundParams.effectionfakeCnPlayerName,customEffObj)) {
+                server.runCommandSilent(`/scoreboard players set ${deepWoundParams.effectionfakeCnPlayerName} ${customEffObj.name} 0`);
             }
         },
     //===============================================================================================
@@ -1300,11 +1322,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             } else {
                 return;
             }
-            var fieldId = config.fieldOrBossId;
             var deepWoundParams = customEffections.get("deepWound");
-            var customEffectionsObjName = customEffections.get("basicConfig").ObjName;
-            var finalObjName = customEffectionsObjName + fieldId;
-            var obj = server.scoreboard.getObjective(finalObjName);
+            var obj = this.getCustomEffectionsScoreboard(server,config);
             if (obj == null) {
                 console.error(`计分板不存在!`);
                 return;
@@ -1329,7 +1348,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     }
                 }
                 deepWoundLock.set(playerName,true);
-                server.runCommandSilent(`/scoreboard players set ${deepWoundParams.effectionfakeCnPlayerName} ${finalObjName} ${newDeepWoundLevel}`);
+                server.runCommandSilent(`/scoreboard players set ${deepWoundParams.effectionfakeCnPlayerName} ${obj.name} ${newDeepWoundLevel}`);
                 server.scheduleInTicks(60,() => {
                     deepWoundLock.delete(playerName);
                 })
@@ -1365,7 +1384,6 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @returns {void}
          */
         renderingEffToActionbar : function (server) {
-            var customEffectionsObjName = customEffections.get("basicConfig").ObjName;
             for (const [playerName ,strFieldId] of playerToFieldReflection) {
                 let numberId = Number(strFieldId);
                 let config = single_Ignis.getConfigManager.getConfigByID(numberId);
@@ -1374,8 +1392,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     continue;
                 }
                 let stringBuffSituation = "";
-                let finalObjName = customEffectionsObjName + strFieldId;
-                let customEffObj = server.scoreboard.getObjective(finalObjName);
+                var customEffObj = this.getCustomEffectionsScoreboard(server,null,numberId);
                 if (customEffObj == null) {
                     console.error(`玩家对应的场地的计分板异常!`);
                     continue;
@@ -1417,11 +1434,9 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 return;
             }
             var playerName = String(entity.username);
-            var fieldId = config.fieldOrBossId;
+            
             var deepWoundParams = customEffections.get("deepWound");
-            var customEffectionsObjName = customEffections.get("basicConfig").ObjName;
-            var finalObjName = customEffectionsObjName + fieldId;
-            var obj = server.scoreboard.getObjective(finalObjName);
+            var obj = this.getCustomEffectionsScoreboard(server,config);
             if (obj == null) {
                 console.error(`计分板不存在!`);
                 return;
@@ -1469,7 +1484,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @returns {void} 
          */
         execDamageBoost : function (entity ,source ,amount ,event) {
-            if (entity.isPlayer()) {  //source.acutal可以为null,不允许直接调用actual
+            if (entity.isPlayer()) {  //source.actual可以为null,不允许直接调用actual
                 if (single_Ignis.getConfigManager.getConfigByPlayerTags(entity) == null) {
                     return;
                 }
@@ -1599,7 +1614,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             if (entity.health < entity.maxHealth/3*2 && !IIStageIgnis.has(entityUUID) && !IIIStageIgnis.has(entityUUID) && !(entity.persistentData.getInt("isBoss") == 0)) {
                 IIStageIgnis.set(entityUUID,1);
                 maxRegenationHp.set(entityUUID,(entity.maxHealth / 3) * 2);
-                if (!entity.persistentData.get("difficulty").asString == "easy") {
+                if (entity.persistentData.get("difficulty").asString != "easy") {
                     this.summonServantMonster(server,level,entity,false);
                 }
             }
@@ -1608,7 +1623,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 maxRegenationHp.set(entityUUID,entity.maxHealth / 3);
                 IIIStageIgnis.set(entityUUID,1);
                 IIStageIgnis.delete(entityUUID);
-                if (!entity.persistentData.get("difficulty").asString == "easy") {
+                if (entity.persistentData.get("difficulty").asString != "easy") {
                     this.summonServantMonster(server,level,entity,false);
                 }
                 server.scheduleInTicks(300,() => {
@@ -1654,6 +1669,23 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
         },
     //---------------------------------------------------------------------------------------
         /**
+         * @param {Internal.Player} p 
+         * @param {number} delta
+         * @returns {Vec3d[]}
+         */
+        predictNextPosition : function (p,delta) {
+            var pos0 = p.position();
+            var pos1 = p.position().add((new Vec3d(0,delta,0)));
+            var pos2 = p.position().add((new Vec3d(0,-delta,0)));
+            var pos3 = p.position().add((new Vec3d(-delta,0,-delta)));
+            var pos4 = p.position().add((new Vec3d(delta,0,delta)));
+            var pos5 = p.position().add((new Vec3d(delta,0,-delta)));
+            var pos6 = p.position().add((new Vec3d(-delta,0,delta)));
+            var posArr = [pos0,pos1,pos2,pos3,pos4,pos5,pos6];
+            return posArr;
+        },
+    //---------------------------------------------------------------------------------------
+        /**
          * @param {Internal.Level} level
          * @param {configDetails} config
          * @param {number} extraAccelerationScale
@@ -1668,44 +1700,20 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                         p => config.fieldAABB.contains(p.position()) && !p.isSpectator() //在场地内并且不是旁观的(并且在boss50m内的)玩家
                     );   //最后一个参数为谓词,接收实体,返回false或true(即实体是否满足条件(实体是...)),以此来过滤实体,此处可用箭头函数校验  
                     //箭头函数如果不加花括号一般是直接起return作用,加花括号要返回必须加return (p => {return ...} 相当于 p => ...)
-                    /**
-                     * @param {Internal.Player} p 
-                     * @param {number} delta
-                     * @returns {Vec3d[]}
-                     */
+                    
                     if (player == null) {
                         console.debug("未找到玩家,无法召唤火球")
                         return;
                     }
-                    var predictNextPosition = function (p,delta) {
-                        var pos0 = p.position();
-                        var pos1 = p.position().add((new Vec3d(0,delta,0)));
-                        var pos2 = p.position().add((new Vec3d(0,-delta,0)));
-                        var pos3 = p.position().add((new Vec3d(-delta,0,-delta)));
-                        var pos4 = p.position().add((new Vec3d(delta,0,delta)));
-                        var pos5 = p.position().add((new Vec3d(delta,0,-delta)));
-                        var pos6 = p.position().add((new Vec3d(-delta,0,delta)));
-                        var posArr = [pos0,pos1,pos2,pos3,pos4,pos5,pos6];
-                        return posArr;
-                    }
-                    /**
-                     * @param {Vec3d} vec3d 
-                     * @returns {[]}
-                     */
-                    var vec3dToArray = function (vec3d) {
-                        var x = vec3d.x();
-                        var y = vec3d.y();
-                        var z = vec3d.z();
-                        return [x,y,z];
-                    }
-                    var playerPosArr = predictNextPosition(player,random.nextDouble(6));
+                    
+                    var playerPosArr = this.predictNextPosition(player,random.nextDouble(6));
                     var accelerationScale = 0.1 + extraAccelerationScale;
                     for(var i = 0;i < 7;i ++){
                         var fireball = level.createEntity("cataclysm:ignis_fireball");
                         fireball.setPos(entity.position().add((new Vec3d(0,6,0))));
                         var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
                         var slowDirection = direction.scale(accelerationScale); //scale 点乘
-                        var power = "[" + vec3dToArray(slowDirection).toString() + "]";
+                        var power = "[" + single_Ignis.GlobalManager.vec3dToArray(slowDirection).toString() + "]";
                         fireball.mergeNbt(`{timer:-100,power:${power}}`)
                         level.addFreshEntity(fireball);
                     }
@@ -1952,7 +1960,12 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     activeBossbarTimer.set(bossId,remainingTime - 1);
                 } else {
                     level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "cataclysm:ignis").forEach(ignis => {
-                        var player = level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "minecraft:player").getFirst();
+                        var players = level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "minecraft:player");
+                        if (players.size() <= 0) {
+                            console.error(`玩家数量为0`);
+                            return;
+                        }
+                        var player = players.getFirst();
                         ignis.setInvulnerable(false);
                         if (currentDifficulty == "normal") {
                             server.scheduleInTicks(1,() => {
@@ -2056,7 +2069,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 if (servantPhantom != null) {
                     for (var i = 0; i < servantPhantom.summonCount ; i++) {
                         /**@type {Internal.LivingEntity} */
-                        this.summonSingleServant(server,config.summonPos,servantHarbinger,level,true,playerName);
+                        this.summonSingleServant(server,config.summonPos,servantPhantom,level,true,playerName);
                     }
                 }
                 
@@ -2064,7 +2077,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 if (servantHarbinger != null) {
                     for (var i = 0; i < servantHarbinger.summonCount ; i++) {
                         /**@type {Internal.LivingEntity} */
-                        this.summonSingleServant(server,config.summonPos,servantPiglin,level,true,playerName);
+                        this.summonSingleServant(server,config.summonPos,servantHarbinger,level,true,playerName);
                     }
                 }
             }
@@ -2084,7 +2097,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             isBossFinalTurn.set(entityUUID,true);
             var fieldId = entity.persistentData.getInt("ID");
             var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(fieldId,"difficulty",FieldStatusFile);
-            if (!difficulty == "easy") {
+            if (difficulty != "easy") {
                 this.summonRandomFlameStrike(level,server,true,difficulty,entity);
                 this.bossBarTimerInit(server,entity,level);
                 this.summonServantMonster(server,level,entity,true);
@@ -2533,6 +2546,32 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             if (Obj2 != null) {
                 server.scoreboard.removeObjective(Obj2);
             }
+        },
+    //----------------------------------------------------------------------------------
+        /**
+         * @param {Internal.MinecraftServer} server
+         * @param {configDetails} config
+         * @param {Internal.Player} player
+         * @returns {void}
+         */
+        clearAllUselessParams : function (server ,config ,player) {
+            playerToFieldReflection.delete(String(player.username));
+            PlayerHasDied.delete(String(player.stringUuid));
+            summonOutTime.delete(String(player.stringUuid));
+            player.removeTag(config.tagOrFieldObjName);  //最后清除玩家队伍,在这之前boss需要被discard
+            backingFieldPlayerList.delete(String(player.username))
+            this.RemoveUselessObj(server,config);
+        },
+    //-----------------------------------------------------------------------------------
+        /**
+         * @param {Vec3d} vec3d 
+         * @returns {[]}
+         */
+        vec3dToArray : function (vec3d) {
+            var x = vec3d.x();
+            var y = vec3d.y();
+            var z = vec3d.z();
+            return [x,y,z];
         }
     }
 }
@@ -3224,7 +3263,7 @@ EntityEvents.hurt(event => {
 })
 
 PlayerEvents.tick(event => {
-    const {player,server} = event;
+    const {player,server,level} = event;
     event.player.setInvulnerable(false);
     //event.player.tell(random.nextFloat(1,3))
     if (event.server.tickCount % 20 != 0) return;
@@ -3233,6 +3272,8 @@ PlayerEvents.tick(event => {
     server.scoreboard.objectives.forEach(obj => {
         server.tell(server.scoreboard.getOrCreatePlayerScore("你好",obj).score);
     })
+    if(level.getEntity("8e0a937b-0f13-41c2-a07a-d46f7e87fc4b") == null){server.tell(`warn`)}
+    player.tell(player.uuid)
     //server.tell(server.scoreboard.getDisplayObjective(1))
     //single_Ignis.BattleManager.autoSummonIgnisFireball(event.server,event.level,"normal");
 })

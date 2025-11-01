@@ -1,4 +1,5 @@
 //仅限挑战服可用
+//注意:out_of_world 可以触发debuff,genericKill不能
 //config below
 var maxSingleCfg = 1; //单人boss一天挑战次数
 
@@ -335,6 +336,34 @@ const ServantMonsterConfig = new Map([  //需要免疫非玩家伤害(魔法和�
 ])
 //END
 
+
+/** 
+ * @typedef {Object} effectionDetails
+ * @property {string} [ObjName] - 计分板Obj的操作名称
+ * @property {string} [ObjDisplayName] - 计分板Obj的展示名称
+ * @property {string} effectionfakeEnPlayerName - 效果的英文名
+ * @property {string} effectionfakeCnPlayerName - 效果的中文名
+ * @property {number} maxLevel - 最大层数
+ **/
+
+/**@typedef {Map<string,effectionDetails>} customEffections*/
+
+/**@type {customEffections}*/
+const customEffections = new Map([
+    ["basicConfig",{
+        ObjName : "Customeffection",
+        ObjDisplayName : "自定义效果",
+        effectionfakeEnPlayerName : "basicConfig",
+        effectionfakeCnPlayerName : "基本设置",
+        maxLevel : 0
+    }],
+    ["deepWound",{
+        effectionfakeEnPlayerName : "deepWound",
+        effectionfakeCnPlayerName : "深层创伤",
+        maxLevel : 10
+    }]
+])
+
 var airBlocks = new Set(["minecraft:void_air","minecraft:air"]);  //空气方块(标识出虚空空气)
 
 const ExceptionIPFile = 'kjsReflect\\challenge_server\\detectedExceptionIP.json'
@@ -401,6 +430,7 @@ var PlayerHasDied = new Map();  //触发过自保功能的玩家名单
 var summonOutTime = new Map();  //挂机时长过久被记录的玩家名单
 var hitCount = new Map();  //对于每个boss的命中次数(用于缓冲执行某些hurt事件)
 var debuffLock = new Map();  //被上debuff后的冷却锁
+var deepWoundLock = new Map()  //被上深层创伤后的冷却锁
 var maxHealthDecay = new Map(); //最大生命值被削减后冷却锁
 var maxRegenationHp = new Map(); //每个boss最大恢复的HP(换阶段HP恢复上限变化)
 var isBossFinalTurn = new Map(); //进入最终战的boss
@@ -420,6 +450,7 @@ var dateCache = -1;
 var activeBossbarTimer = new Map();
 
 const single_Ignis = {  //使用Object封装方法与某些特定属性(类似于Java的工具类(Class))  public class XXX
+    /**管理难度获取相关的方法 */
     difficultyManager : {  //类似java封装静态类 public static class XXX  
     //-------------------------------------------------------------------------------------
         /**
@@ -448,7 +479,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
         },
     },
-    getConfigManager : {  //管理获取设置的方法
+    /**管理获取设置的方法 */
+    getConfigManager : {  
         /**
          * @param {BlockPos} blockPos
          * @returns {configDetails|null}
@@ -528,7 +560,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             return null;
         }
     },
-    FieldManager : {   //管理场地以及失败,胜利等的方法
+    /**管理场地以及失败,胜利等的方法 */
+    FieldManager : {   
         /**
          * @param {Internal.MinecraftServer} server
          * @param {number} score
@@ -1122,7 +1155,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
         }
     },
-    ConnectionManager : {   //管理玩家连接(上下线)的方法
+    /**管理玩家连接(上下线)的方法 */
+    ConnectionManager : {   
         /**
          * @param {Internal.Player} player 
          * @param {Internal.MinecraftServer} server 
@@ -1201,12 +1235,163 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }  //战斗中退出传送
         }
     },
-    BattleManager : {  //管理战斗流程/招式的方法
+    /**管理自定义buff/debuff的方法 */
+    CustomEffectionManager: {  
+        /**
+         * 战斗即将开始时,初始化自定义效果计分板(与场地绑定)
+         * @param {Internal.MinecraftServer} server 
+         * @param {number} fieldId
+         * @returns {void}
+         */
+        customEffectionsInit : function (server ,fieldId) { 
+            var basicConfigParams = customEffections.get("basicConfig")
+            var finalObjName = basicConfigParams.ObjName + fieldId;
+            var customEffectionObj = server.scoreboard.getObjective(finalObjName);
+            if (customEffectionObj == null) {
+                server.runCommandSilent(`/scoreboard objectives add ${finalObjName} dummy "${basicConfigParams.ObjDisplayName}"`);
+                console.log(`自定义效果计分板初始化完成`);
+            }
+            this.deepWoundInit(server ,finalObjName);
+        },
+    //===============================================================================================
+        /**
+         * @param {Internal.MinecraftServer} server 
+         * @param {string} customEffObjName
+         * @returns {void}
+         */
+        deepWoundInit : function (server ,customEffObjName) {
+            var deepWoundParams = customEffections.get("deepWound");
+            var obj = server.scoreboard.getObjective(customEffObjName);
+            if (!server.scoreboard.hasPlayerScore(deepWoundParams.effectionfakeCnPlayerName,obj)) {
+                server.runCommandSilent(`/scoreboard players set ${deepWoundParams.effectionfakeCnPlayerName} ${customEffObjName} 0`);
+            }
+        },
+    //===============================================================================================
+        /**
+         * @param {Internal.LivingEntity} entity 
+         * @param {Internal.MinecraftServer} server 
+         * @param {DamageSource} source 
+         * @returns {void} 
+         */
+        execCustomEffectionLevelWhenHurt : function (entity ,server ,source) {
+            if (source.type().msgId() == "genericKill") return;
+            if (entity.isPlayer()) {
+                var config = single_Ignis.getConfigManager.getConfigByPlayerTags(entity);
+                if (config == null) {
+                    console.error(`配置项为空!`);
+                    return;
+                }
+            } else {
+                return;
+            }
+            var fieldId = config.fieldOrBossId;
+            var deepWoundParams = customEffections.get("deepWound");
+            var customEffectionsObjName = customEffections.get("basicConfig").ObjName;
+            var finalObjName = customEffectionsObjName + fieldId;
+            var obj = server.scoreboard.getObjective(finalObjName);
+            if (obj == null) {
+                console.error(`计分板不存在!`);
+                return;
+            }
+
+            var playerName = entity.username;
+            if (!deepWoundLock.has(playerName)) {
+                var deepWoundLevel = server.scoreboard.getOrCreatePlayerScore(deepWoundParams.effectionfakeCnPlayerName,obj).score;
+                var newDeepWoundLevel = 0;
+                if (deepWoundLevel >= deepWoundParams.maxLevel) return;
+                if (source.actual != null) {
+                    if (source.actual.persistentData.getInt("isBoss") != 0) {
+                        newDeepWoundLevel = deepWoundLevel + 1;
+                    } else {
+                        if (random.nextInt(101) > 50) {
+                            newDeepWoundLevel = deepWoundLevel + 1;
+                        }
+                    }
+                } else {
+                    if (random.nextInt(101) > 50) {
+                        newDeepWoundLevel = deepWoundLevel + 1;
+                    }
+                }
+                deepWoundLock.set(playerName,true);
+                server.runCommandSilent(`/scoreboard players set ${deepWoundParams.effectionfakeCnPlayerName} ${finalObjName} ${newDeepWoundLevel}`);
+                server.scheduleInTicks(60,() => {
+                    deepWoundLock.delete(playerName);
+                })
+            }
+        },
+    //===============================================================================================
+        /**
+         * @param {Internal.MinecraftServer} server 
+         * @returns {void}
+         */
+        execCustomEffectionLevelWhenTick : function (server) {
+            var deepWoundParams = customEffections.get("deepWound")
+            var customEffectionsObjName = customEffections.get("basicConfig").ObjName;
+
+            server.scoreboard.objectives.filter(obj => obj.name.startsWith(customEffectionsObjName)).forEach(customEffObj => {
+                var deepWoundLevel = server.scoreboard.getOrCreatePlayerScore(deepWoundParams.effectionfakeCnPlayerName,customEffObj).score;
+                var newDeepWoundLevel = Math.floor(deepWoundLevel * 2 / 3);
+                if (newDeepWoundLevel <= 0) {
+                    newDeepWoundLevel = 0;
+                }
+                if (newDeepWoundLevel != deepWoundLevel) {
+                    server.runCommandSilent(`/scoreboard players set ${deepWoundParams.effectionfakeCnPlayerName} ${customEffObj.name} ${newDeepWoundLevel}`);
+                }
+            })
+        },
+    //===============================================================================================
+        /**
+         * @param {Internal.MinecraftServer} server 
+         * @returns {void}
+         */
+        renderingEffToActionbar : function (server) {
+            
+        },
+    //===============================================================================================
+        /**
+         * @param {Internal.LivingEntity} entity 
+         * @param {Internal.MinecraftServer} server 
+         * @param {DamageSource} source 
+         * @returns {void} 
+         */
+        execDeepWound : function (entity ,server) {
+            if (entity.isPlayer()) {
+                var config = single_Ignis.getConfigManager.getConfigByPlayerTags(entity);
+                if (config == null) {
+                    console.error(`配置项为空!`);
+                    return;
+                }
+            } else {
+                return;
+            }
+            var playerName = String(entity.username);
+            var fieldId = config.fieldOrBossId;
+            var deepWoundParams = customEffections.get("deepWound");
+            var customEffectionsObjName = customEffections.get("basicConfig").ObjName;
+            var finalObjName = customEffectionsObjName + fieldId;
+            var obj = server.scoreboard.getObjective(finalObjName);
+            if (obj == null) {
+                console.error(`计分板不存在!`);
+                return;
+            }
+
+            var deepWoundLevel = server.scoreboard.getOrCreatePlayerScore(deepWoundParams.effectionfakeCnPlayerName,obj).score;
+            var currentHp = entity.health;
+            if (currentHp - deepWoundLevel > 0) {
+                server.runCommandSilent(`/damage ${playerName} ${deepWoundLevel} minecraft:generic_kill`);
+            } else {
+                entity.kill();
+            }
+        },
+    },
+    /**管理战斗流程/招式的方法 */
+    BattleManager : {  
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.Player} player  
          * @param {Internal.Level} level
          * @param {Internal.LivingEntityHurtEventJS} event
+         * @returns {void}
          */
         execPlayerUndying : function (server ,player ,level ,event) {
             var playerUUid = String(player.stringUuid);
@@ -1264,6 +1449,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @returns {void} - 简单模式目前不可用(0.0)
          */
         execRealDamage : function (entity, server ,damage ,source ,level ,event) {
+            if (source.type().msgId() == "genericKill") return;
             if (entity.isPlayer()) {  
                 if (source.actual != null) {
                     var playerUUid = String(entity.stringUuid);
@@ -1536,6 +1722,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @returns {void}
          */
         addDebuffWhenPlayerGetHit : function (entity ,source ,server) {
+            if (source.type().msgId() == "genericKill") return;
             if (entity.isPlayer()) {
                 var playerName = String(entity.username);
                 if (source.actual == null) return;
@@ -1834,7 +2021,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
         }
     },
-    GlobalManager : {  //管理全局通用的方法
+    /**管理全局通用的方法 */
+    GlobalManager : {  
         /**
          * @param {Internal.Player} player
          * @param {boolean} isSettling
@@ -2306,12 +2494,12 @@ BlockEvents.leftClicked(event => {
 
 EntityEvents.hurt(event => {
     const {level ,entity ,server ,source ,damage} = event;
-    const {BattleManager} = single_Ignis;
+    const {BattleManager ,CustomEffectionManager} = single_Ignis;
     if (entity.isPlayer() && (entity.persistentData.get("isBoss") == null)) {
-        /*BattleManager.addDebuffWhenPlayerGetHit(entity,source,server);
+        BattleManager.addDebuffWhenPlayerGetHit(entity,source,server);
         if (source.actual != null) {
             BattleManager.execRealDamage(entity,server,damage,source,level,event);
-        } */  //玩家boss开启时请注释掉这部分,或者以后需要重写玩家boss
+        }   //玩家boss开启时请注释掉这部分,或者以后需要重写玩家boss
     } else if (entity.type == "cataclysm:ignis") {
         BattleManager.execIgnisStageChange(entity,server,level);
         BattleManager.execIgnisGetAttacked(entity);
@@ -2937,14 +3125,22 @@ EntityEvents.hurt(event => {
     if (source.type().msgId() == "magic") {
         //server.tell(1);
     } else {
-        server.tell(source.type());
+        server.tell(source.type().msgId());
      //   server.tell(source.actual)
     }
 })
 
 PlayerEvents.tick(event => {
+    const {player,server} = event;
     event.player.setInvulnerable(false);
     //event.player.tell(random.nextFloat(1,3))
     if (event.server.tickCount % 20 != 0) return;
+    var Obj = event.server.scoreboard.getObjective("3");
+    //server.tell(server.scoreboard.getOrCreatePlayerScore("你好",Obj).score)
+    server.scoreboard.objectives.forEach(obj => {
+        server.tell(server.scoreboard.getOrCreatePlayerScore("你好",obj).score);
+    })
+    //server.tell(server.scoreboard.getDisplayObjective(1))
     //single_Ignis.BattleManager.autoSummonIgnisFireball(event.server,event.level,"normal");
 })
+

@@ -243,7 +243,7 @@ const difficultyParameter = new Map([
         bossSpeedMultiplier : 1.5,
         enemyDamageMultiplier : 4,
         //---
-        fireballCooldown : 120,  
+        fireballCooldown : 90,  
         fireballMaxWaveCount : 5, //这里应用3-5波随机出
         extraFireballAccelerationScale : 0.15,
         extraFireballOrMagicDamageScale : 5,  //5则为一次掉4-5HP(全套保护五腾炎甲)
@@ -523,6 +523,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"difficulty","hard");
                     return "hard";
                 case "minecraft:netherite_pickaxe" :
+                    single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"difficulty","hell");
                     return "hell";
                 default :
                     player.tell("请使用正确的物品召唤!")
@@ -1338,10 +1339,11 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          */
         execCustomEffectionLevelWhenHurt : function (entity ,server ,source) {
             if (source.type().msgId() == "genericKill") return;
+            var config = null;
             if (entity.isPlayer()) {
-                var config = single_Ignis.getConfigManager.getConfigByPlayerTags(entity);
+                config = single_Ignis.getConfigManager.getConfigByPlayerTags(entity);
                 if (config == null) {
-                    console.error(`配置项为空!`);
+                    console.debug(`配置项为空!`);
                     return;
                 }
             } else {
@@ -1354,10 +1356,11 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 return;
             }
 
-            var playerName = entity.username;
-            if (!deepWoundLock.has(playerName)) {
+            var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+            var playerName = String(entity.username);
+            if (!deepWoundLock.has(playerName) && difficulty == "hell") {
                 var deepWoundLevel = server.scoreboard.getOrCreatePlayerScore(deepWoundParams.effectionfakeCnPlayerName,obj).score;
-                var newDeepWoundLevel = 0;
+                var newDeepWoundLevel = deepWoundLevel;  //这里不要改0,有怪bug
                 if (deepWoundLevel >= deepWoundParams.maxLevel) return;
                 if (source.actual != null) {
                     if (source.actual.persistentData.getInt("isBoss") != 0) {
@@ -1514,7 +1517,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     return;
                 }
                 var difficulty = single_Ignis.GlobalManager.getFieldStatusByPlayerFromCache(entity,"difficulty");
-                if (difficulty == null) {
+                if (difficulty == null || difficulty == "") {
                     console.error(`难度获取失败!`);
                     return;
                 }
@@ -1554,7 +1557,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
                     var currentPlayerHp = entity.health;
                     if (difficulty == "easy") return;
-                    if (source.actual.persistentData.getInt("isBoss") != 0) {  //为Boss  
+                    if (source.actual.persistentData.getInt("isBoss") != 0) {  //为Boss 
+                        this.execHealthDecay(entity,server,source,difficulty); 
                         if (source.actual.health < source.actual.maxHealth / 3) { 
                             var realDamage = damage * difficultyParameter.get(difficulty).enemyDamageMultiplier * difficultyParameter.get(difficulty).realDamageMultiplier;
                             if (realDamage < currentPlayerHp) {
@@ -1567,7 +1571,6 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                                     server.runCommandSilent(`/damage ${playerName} ${realDamage} minecraft:out_of_world`);
                                 }
                             }
-                            this.execHealthDecay(entity,server,source,difficulty);
                             event.cancel();
                         }
                     }
@@ -1616,7 +1619,9 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                             maxHPDecayCount = difficultyParameter.get(difficulty).servantMaxHealthDecayCount;
                         }
                         if (!maxHealthDecay.has(playerName) && currentPlayerMaxHealth - maxHPDecayCount >= 1) {
-                            entity.setMaxHealth(Math.max(currentPlayerMaxHealth - maxHPDecayCount, 1));
+                            //entity.setMaxHealth(Math.max(currentPlayerMaxHealth - maxHPDecayCount, 1));
+                            entity.setMaxHealth(-1);
+                            entity.tell(entity.getMaxHealth())
                             maxHealthDecay.set(playerName ,true);
                             server.scheduleInTicks(maxHPDecayCd, () => {
                                 maxHealthDecay.delete(playerName);
@@ -1771,7 +1776,6 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 let maxFireballWave = difficultyParameter.get(currentDifficulty).fireballMaxWaveCount;
                 let maxExtraAccelerationScale = difficultyParameter.get(currentDifficulty).extraFireballAccelerationScale;
                 var finalFireballWave;
-                var finalExtraAccelerationScale;
                 if (!useRandomWave) {
                     if (maxFireballWave > 1) {
                         finalFireballWave = maxFireballWave;
@@ -1785,14 +1789,14 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     }
                     finalFireballWave = random.nextInt(minFireballWave,maxFireballWave + 1)  //nextInt(3,5)就是[3,5)
                 }
-                
-                if (!useRandomSpeed) {
-                    finalExtraAccelerationScale = maxExtraAccelerationScale;
-                } else {
-                    finalExtraAccelerationScale = Math.round(random.nextFloat(0,maxExtraAccelerationScale + 0.001) * 100) / 100;
-                }
 
                 for (let wave = 0; wave < finalFireballWave; wave++) {
+                    let finalExtraAccelerationScale;
+                    if (!useRandomSpeed) {
+                        finalExtraAccelerationScale = maxExtraAccelerationScale;
+                    } else {
+                        finalExtraAccelerationScale = Math.round(random.nextFloat(0,maxExtraAccelerationScale + 0.001) * 100) / 100;
+                    }
                     server.scheduleInTicks(10 * wave , () => {
                         this.summonSingleFireball(level, currentConfig, finalExtraAccelerationScale);
                     })
@@ -2622,7 +2626,7 @@ BlockEvents.rightClicked("minecraft:oak_button", event => {
         var hasBannedItem = FieldManager.scanBannedItem(player);
         if (hasBannedItem) return;
         rightClickCooldown = 20;
-        if(FieldManager.TpIntoField(server ,block.pos ,level)) {
+        if(FieldManager.TpIntoField(server ,block.pos ,level ,player)) {
             GlobalManager.tellPlayerChallengeCount(player,false);
             FieldManager.resetFieldByButton(server,defaultChargeBoxNBT,block.pos,level);
         } 
@@ -2746,7 +2750,7 @@ ServerEvents.tick(event => {
     if (server.tickCount % 60 == 0) {
         GlobalManager.removeBannedEntity(server);
     }
-    if (server.tickCount % 40 == 0) {
+    if (server.tickCount % 10 == 0) {
         CustomEffectionManager.renderingEffToActionbar(server);
     }
     if (server.tickCount % 20 == 0) {
@@ -2768,6 +2772,10 @@ ServerEvents.tick(event => {
         BattleManager.autoSummonIgnisFireball(server,overworld,"hard");
     }
 
+    if (server.tickCount % difficultyParameter.get("hell").fireballCooldown == 0) {
+        BattleManager.autoSummonIgnisFireball(server,overworld,"hell",true,true);
+    }
+
     if (server.tickCount % difficultyParameter.get("easy").flameSummonCooldown == 0) {
         BattleManager.summonRandomFlameStrike(overworld,server,false,"easy");
     }
@@ -2778,6 +2786,10 @@ ServerEvents.tick(event => {
 
     if (server.tickCount % difficultyParameter.get("hard").flameSummonCooldown == 0) {
         BattleManager.summonRandomFlameStrike(overworld,server,false,"hard");
+    }
+
+    if (server.tickCount % difficultyParameter.get("hell").flameSummonCooldown == 0) {
+        BattleManager.summonRandomFlameStrike(overworld,server,false,"hell");
     }
 })
 

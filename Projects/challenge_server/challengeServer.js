@@ -1476,8 +1476,9 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @returns {void} 
          */
         execDeepWound : function (entity ,server) {
+            var config;
             if (entity.isPlayer()) {
-                var config = single_Ignis.getConfigManager.getConfigByPlayerTags(entity);
+                config = single_Ignis.getConfigManager.getConfigByPlayerTags(entity);
                 if (config == null) {
                     console.error(`配置项为空!`);
                     return;
@@ -2705,7 +2706,9 @@ EntityEvents.hurt(event => {
             BattleManager.execRealDamage(entity,server,damage,source,level,event);
         }   //玩家boss开启时请注释掉这部分,或者以后需要重写玩家boss
         CustomEffectionManager.execCustomEffectionLevelWhenHurt(entity,server,source);
-        CustomEffectionManager.execDeepWound(entity,server);
+        if (source.type().msgId() != "genericKill") {
+            CustomEffectionManager.execDeepWound(entity,server);
+        }
     } else if (entity.type == "cataclysm:ignis") {
         BattleManager.execIgnisStageChange(entity,server,level);
         BattleManager.execIgnisGetAttacked(entity);
@@ -2938,7 +2941,7 @@ ServerEvents.chestLootTables(event => {
     })
     event.addChest("challenge:hardreward",loot => {
         loot.addPool(haticon => {
-            haticon.addItem("simplehats:haticon",100).count({min:1,max:1});
+            haticon.addItem("simplehats:haticon",100).count({min:3,max:3});
             haticon.setUniformRolls(1,1);
         })
         loot.addPool(hat => {

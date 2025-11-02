@@ -1,5 +1,8 @@
 //仅限挑战服可用
-//注意:out_of_world 可以触发debuff,genericKill不能
+//注意:
+//1.out_of_world 可以触发debuff,genericKill不能
+//2.setMaxHealth()设置的是maxHealth的attribute,会因为加血饰品造成紊乱(设置成20时有奥丁则为40HP),但getMaxHealth()可以准确获取最大生命值
+
 //config below
 var maxSingleCfg = 1; //单人boss一天挑战次数
 
@@ -29,14 +32,16 @@ var debuffType = [
     {id:"minecraft:blindness",duration:3 * 20,lvl:0}
 ];
 
-var HOLD_ON_TIME_IN_SECONDS = 90; //亡语坚持时间
+const DEFAULT_MAX_HEALTH = 20;
+
+const HOLD_ON_TIME_IN_SECONDS = 90; //亡语坚持时间
 
 var clearIllegalBossCooldown = 20 //tick
 
 var rightClickCooldown = 20; //右键点击后的冷却时长(tick)
 
-//临时不可用:{Slot:0b,id:"minecraft:wooden_pickaxe",tag:{Damage:0,display:{Name:'{"text":"训练","color":"green"}'},CanDestroy:["alexscaves:hazmat_warning_block"]},Count:1b},,{Slot:2b,id:"minecraft:golden_pickaxe",tag:{Damage:0,display:{Name:'{"text":"普通","color":"yellow"}'},CanDestroy:["alexscaves:hazmat_warning_block"]},Count:1b},{Slot:3b,id:"minecraft:diamond_pickaxe",tag:{Damage:0,display:{Name:'{"text":"困难","color":"gold"}'},CanDestroy:["alexscaves:hazmat_warning_block"]},Count:1b}
-var defaultChargeBoxNBT = `Items:[{Slot:1b,id:"minecraft:iron_pickaxe",tag:{Damage:0,display:{Name:'{"text":"简单","color":"#33CCFF"}'},CanDestroy:["alexscaves:hazmat_warning_block"]},Count:1b},{Slot:2b,id:"minecraft:paper",tag:{display:{Name:'{"text":"更多难度敬请期待,技术组休假,暂时停止相关测试","color":"yellow"}'}},Count:1b}]`
+//临时不可用:{Slot:0b,id:"minecraft:wooden_pickaxe",tag:{Damage:0,display:{Name:'{"text":"训练","color":"green"}'},CanDestroy:["alexscaves:hazmat_warning_block"]},Count:1b},
+var defaultChargeBoxNBT = `Items:[{Slot:1b,id:"minecraft:iron_pickaxe",tag:{Damage:0,display:{Name:'{"text":"简单","color":"#33CCFF"}'},CanDestroy:["alexscaves:hazmat_warning_block"]},Count:1b},{Slot:2b,id:"minecraft:golden_pickaxe",tag:{Damage:0,display:{Name:'{"text":"普通","color":"yellow"}'},CanDestroy:["alexscaves:hazmat_warning_block"]},Count:1b},{Slot:3b,id:"minecraft:diamond_pickaxe",tag:{Damage:0,display:{Name:'{"text":"困难","color":"gold"}'},CanDestroy:["alexscaves:hazmat_warning_block"]},Count:1b},{Slot:4b,id:"minecraft:netherite_pickaxe",tag:{Damage:0,display:{Name:'{"text":"梦魇(极限)(未做好万全准备请勿进入)","color":"red"}'},CanDestroy:["alexscaves:hazmat_warning_block"]},Count:1b}]`
 
 
 /**
@@ -265,7 +270,7 @@ const difficultyParameter = new Map([
         canBossDecayHealth : 1,
         bossMaxHealthDecayCount : 2, 
         servantMaxHealthDecayCount : 1,
-        healthDecayCooldown : 50, 
+        healthDecayCooldown : 200, 
         //---
         stringLootTable : `LootTable:"challenge:chests/hardreward"` //暂时拿困难的顶替
     }]
@@ -474,26 +479,41 @@ const MobEffectInstance = Java.loadClass(`net.minecraft.world.effect.MobEffectIn
 const DustParticleOptions = Java.loadClass(`net.minecraft.core.particles.DustParticleOptions`);
 const LivingEntity = Java.loadClass(`net.minecraft.world.entity.LivingEntity`);
 
-
-var IIStageIgnis = new Map();  //二阶段焰魔名单
-var IIIStageIgnis = new Map();  //三阶段焰魔名单
-var PlayerHasDied = new Map();  //触发过自保功能的玩家名单
-var summonOutTime = new Map();  //挂机时长过久被记录的玩家名单
-var hitCount = new Map();  //对于每个boss的命中次数(用于缓冲执行某些hurt事件)
-var debuffLock = new Map();  //被上debuff后的冷却锁
-var deepWoundLock = new Map()  //被上深层创伤后的冷却锁
-var maxHealthDecay = new Map(); //最大生命值被削减后冷却锁
-var maxRegenationHp = new Map(); //每个boss最大恢复的HP(换阶段HP恢复上限变化)
-var isBossFinalTurn = new Map(); //进入最终战的boss
-var backingFieldPlayerList = new Set(); //尝试返回场地的玩家集
-var bossHpWhenPlayerUseCmd = new Map(); //玩家使用返回场地命令时boss的hp
+/**@typedef {string} playerName */
+/**@typedef {string} playerOrEntityUuid */
+/**@type {Map<playerName,number>} - 记录玩家最大hp相对于正常最大hp(20)多出的部分 */
+var playerExtraMaxHpMap = new Map();  
+/**@type {Map<playerOrEntityUuid,number>} - 二阶段焰魔名单 */ 
+var IIStageIgnis = new Map();  
+/**@type {Map<playerOrEntityUuid,number>} - 三阶段焰魔名单 */ 
+var IIIStageIgnis = new Map();  
+/**@type {Map<playerOrEntityUuid,number>} - 触发过自保功能的玩家名单 */ 
+var PlayerHasDied = new Map();  
+/**@type {Map<playerOrEntityUuid,number>} - 挂机时长过久被记录的玩家名单 */ 
+var summonOutTime = new Map();  
+/**@type {Map<playerOrEntityUuid,number>} - 对于每个boss的命中次数(用于缓冲执行某些hurt事件) */ 
+var hitCount = new Map();  
+/**@type {Map<playerName,number>} - 被施加debuff后的冷却锁 */ 
+var debuffLock = new Map();  
+/**@type {Map<playerName,number>} - 被施加深层创伤后的冷却锁 */ 
+var deepWoundLock = new Map()  
+/**@type {Map<playerName,number>} - 最大生命值被削减后冷却锁 */ 
+var maxHealthDecay = new Map(); 
+/**@type {Map<playerOrEntityUuid,number>} - 每个boss最大恢复的HP值(换阶段HP恢复上限变化) */ 
+var maxRegenationHp = new Map(); 
+/**@type {Map<playerOrEntityUuid,number>} - 进入最终战的boss名单 */ 
+var isBossFinalTurn = new Map(); 
+/**@type {Map<playerName,number>} - 尝试返回场地的玩家集*/ 
+var backingFieldPlayerList = new Set(); 
+/**@type {Map<playerOrEntityUuid,number>} - 玩家使用返回场地命令时boss的hp */ 
+var bossHpWhenPlayerUseCmd = new Map(); 
 /** 
  * @typedef FieldStatus
  * @property {boolean} isBossSummoned
  * @property {string} difficulty
 */
-/**@type {Map<string,FieldStatus>} */
-var FieldStatusCache = new Map(); //ID为键的场地状态缓存(用于处理server遍历事件)
+/**@type {Map<string,FieldStatus>} - ID为键的场地状态缓存(用于处理server遍历事件) */
+var FieldStatusCache = new Map(); 
 var playerToFieldReflection = new Map(); //玩家为键的场地状态缓存(用于处理hurt事件等)
 var dateCache = -1;
 
@@ -770,6 +790,10 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             this.addPlayerToObj(server ,playername ,config.tagOrFieldObjName ,1);  //锁定有一个玩家在战斗中
             playerToFieldReflection.set(playername,config.fieldOrBossId.toString());
 
+            if (player.maxHealth > DEFAULT_MAX_HEALTH) {
+                var extraMaxHealth = player.maxHealth - DEFAULT_MAX_HEALTH;
+                playerExtraMaxHpMap.set(playername,extraMaxHealth);
+            }
             single_Ignis.CustomEffectionManager.customEffectionsInit(server,config.fieldOrBossId);
 
             var flameCountDown = level.createEntity("cataclysm:flame_strike");
@@ -944,7 +968,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     playername = String(player.username);
                 }
                 player.setInvulnerable(true);
-                
+                player.setMaxHealth(20);
                 server.scheduleInTicks(600,() => {
                     single_Ignis.GlobalManager.clearAllUselessParams(server,config,player);
                 })
@@ -1360,7 +1384,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             var playerName = String(entity.username);
             if (!deepWoundLock.has(playerName) && difficulty == "hell") {
                 var deepWoundLevel = server.scoreboard.getOrCreatePlayerScore(deepWoundParams.effectionfakeCnPlayerName,obj).score;
-                var newDeepWoundLevel = deepWoundLevel;  //这里不要改0,有怪bug
+                var newDeepWoundLevel = deepWoundLevel;  
                 if (deepWoundLevel >= deepWoundParams.maxLevel) return;
                 if (source.actual != null) {
                     if (source.actual.persistentData.getInt("isBoss") != 0) {
@@ -1608,6 +1632,25 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                         console.error(`难度为空!`);
                         return;
                     }
+                    var extraMaxHealth = 0;
+                    if (entity.maxHealth > DEFAULT_MAX_HEALTH) {
+                        if (playerExtraMaxHpMap.get(playerName) != null) {
+                            extraMaxHealth = playerExtraMaxHpMap.get(playerName);
+                        } else {
+                            extraMaxHealth = entity.maxHealth - DEFAULT_MAX_HEALTH;
+                            playerExtraMaxHpMap.set(playerName,extraMaxHealth);
+                        }
+                    } else {
+                        if (playerExtraMaxHpMap.get(playerName) != null) {
+                            extraMaxHealth = playerExtraMaxHpMap.get(playerName);
+                        } else {
+                            var tempMaxHpCache = entity.maxHealth;
+                            entity.setMaxHealth(20);
+                            extraMaxHealth = entity.maxHealth - DEFAULT_MAX_HEALTH;
+                            playerExtraMaxHpMap.set(playerName,extraMaxHealth);
+                            entity.setMaxHealth(tempMaxHpCache - extraMaxHealth);
+                        }
+                    }
                     var entityPersistentData = source.actual.persistentData;
                     if (entityPersistentData.getInt("canDecayHealth") != 0) { //会对最大生命值造成损伤
                         var currentPlayerMaxHealth = entity.maxHealth;
@@ -1618,15 +1661,17 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                         } else if (entityPersistentData.getInt("isServant") != 0) {
                             maxHPDecayCount = difficultyParameter.get(difficulty).servantMaxHealthDecayCount;
                         }
-                        if (!maxHealthDecay.has(playerName) && currentPlayerMaxHealth - maxHPDecayCount >= 1) {
-                            //entity.setMaxHealth(Math.max(currentPlayerMaxHealth - maxHPDecayCount, 1));
-                            entity.setMaxHealth(-1);
-                            entity.tell(entity.getMaxHealth())
+                        if (!maxHealthDecay.has(playerName)) {
+                            if (currentPlayerMaxHealth - maxHPDecayCount >= 1) {
+                                entity.setMaxHealth(currentPlayerMaxHealth - maxHPDecayCount - extraMaxHealth);
+                            } else {
+                                entity.setMaxHealth(-19 - extraMaxHealth);
+                            }
                             maxHealthDecay.set(playerName ,true);
                             server.scheduleInTicks(maxHPDecayCd, () => {
                                 maxHealthDecay.delete(playerName);
                             })
-                        }
+                        } 
                     }
                 }
             }
@@ -2584,11 +2629,14 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @returns {void}
          */
         clearAllUselessParams : function (server ,config ,player) {
-            playerToFieldReflection.delete(String(player.username));
-            PlayerHasDied.delete(String(player.stringUuid));
-            summonOutTime.delete(String(player.stringUuid));
+            var playerName = String(player.username);
+            var playerUUID = String(player.stringUuid);
+            playerToFieldReflection.delete(playerName);
+            PlayerHasDied.delete(playerUUID);
+            summonOutTime.delete(playerUUID);
             player.removeTag(config.tagOrFieldObjName);  //最后清除玩家队伍,在这之前boss需要被discard
-            backingFieldPlayerList.delete(String(player.username))
+            backingFieldPlayerList.delete(playerName);
+            playerExtraMaxHpMap.delete(playerName);
             this.RemoveUselessObj(server,config);
         },
     //-----------------------------------------------------------------------------------
@@ -2657,6 +2705,7 @@ EntityEvents.hurt(event => {
             BattleManager.execRealDamage(entity,server,damage,source,level,event);
         }   //玩家boss开启时请注释掉这部分,或者以后需要重写玩家boss
         CustomEffectionManager.execCustomEffectionLevelWhenHurt(entity,server,source);
+        CustomEffectionManager.execDeepWound(entity,server);
     } else if (entity.type == "cataclysm:ignis") {
         BattleManager.execIgnisStageChange(entity,server,level);
         BattleManager.execIgnisGetAttacked(entity);
@@ -2798,8 +2847,28 @@ ServerEvents.entityLootTables(event => {
         loot.addPool(pool => {
             pool.addItem("minecraft:air");
         })
-    }) 
-})  
+    })
+    event.addEntity("cataclysm:the_harbinger",loot => {
+        loot.addPool(pool => {
+            pool.addItem("minecraft:air");
+        })
+    })
+    event.addEntity("minecraft:piglin_brute",loot => {
+        loot.addPool(pool => {
+            pool.addItem("minecraft:air");
+        })
+    })
+    event.addEntity("minecraft:phantom",loot => {
+        loot.addPool(pool => {
+            pool.addItem("minecraft:air");
+        })
+    })
+    event.addEntity("cataclysm:ignited_revenant",loot => {
+        loot.addPool(pool => {
+            pool.addItem("minecraft:air");
+        })
+    })
+})  //清空不必要生物的掉落
 
 ItemEvents.dropped(event => {
     const {entity ,item ,itemEntity} = event;
@@ -2809,7 +2878,7 @@ ItemEvents.dropped(event => {
         var itemstack = item;
         itemEntity.discard();
         if (entity.mainHandItem.id == "minecraft:air") {
-            entity.setMainHandItem(itemstack);
+            entity.setMainHandItem(itemstack);  //副手刷物品
         } else {
             var count = item.count + entity.mainHandItem.count;
             entity.mainHandItem.setCount(count);
@@ -3288,4 +3357,3 @@ ItemEvents.entityInteracted("minecraft:snow_block",event => {
         target.setInvulnerable(false);
     }
 })*/
-

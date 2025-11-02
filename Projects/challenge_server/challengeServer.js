@@ -3,30 +3,30 @@
 //config below
 var maxSingleCfg = 1; //单人boss一天挑战次数
 
-var bannedItem = new Set(["cataclysm:ignitium_elytra_chestplate","minecraft:elytra","create_jetpack:netherite_jetpack","create_jetpack:jetpack"
-,"brewery:beer_haley","alexscaves:burrowing_arrow","supplementaries:rope_arrow","farm_and_charm:grandmothers_strawberry_cake"
-,"botania:vine_ball","botania:slingshot","supplementaries:slingshot","cataclysm:tidal_claws","botania:rainbow_rod","botania:tornado_rod"])//禁用物品
+var bannedItem = new Set(["cataclysm:ignitium_elytra_chestplate", "minecraft:elytra", "create_jetpack:netherite_jetpack", "create_jetpack:jetpack"
+    , "brewery:beer_haley", "alexscaves:burrowing_arrow", "supplementaries:rope_arrow", "farm_and_charm:grandmothers_strawberry_cake"
+    , "botania:vine_ball", "botania:slingshot", "supplementaries:slingshot", "cataclysm:tidal_claws", "botania:rainbow_rod", "botania:tornado_rod"])//禁用物品
 
 var bannedItemCNReflect = new Map([
-    ["cataclysm:ignitium_elytra_chestplate","腾炎鞘翅胸甲"],["minecraft:elytra","鞘翅"],["create_jetpack:netherite_jetpack","下界合金喷气背包"],
-    ["create_jetpack:jetpack","喷气背包"],["brewery:beer_haley","海莉啤酒"],["alexscaves:burrowing_arrow","采掘箭"],["supplementaries:rope_arrow","绳索箭矢"],
-    ["farm_and_charm:grandmothers_strawberry_cake","奶奶的草莓蛋糕"],["botania:vine_ball","藤蔓球"],["botania:slingshot","活木弹弓"],
-    ["supplementaries:slingshot","弹弓"],["cataclysm:tidal_claws","潮汐利爪"],["botania:rainbow_rod","彩虹桥法杖"],["botania:tornado_rod","天空法杖"]
+    ["cataclysm:ignitium_elytra_chestplate", "腾炎鞘翅胸甲"], ["minecraft:elytra", "鞘翅"], ["create_jetpack:netherite_jetpack", "下界合金喷气背包"],
+    ["create_jetpack:jetpack", "喷气背包"], ["brewery:beer_haley", "海莉啤酒"], ["alexscaves:burrowing_arrow", "采掘箭"], ["supplementaries:rope_arrow", "绳索箭矢"],
+    ["farm_and_charm:grandmothers_strawberry_cake", "奶奶的草莓蛋糕"], ["botania:vine_ball", "藤蔓球"], ["botania:slingshot", "活木弹弓"],
+    ["supplementaries:slingshot", "弹弓"], ["cataclysm:tidal_claws", "潮汐利爪"], ["botania:rainbow_rod", "彩虹桥法杖"], ["botania:tornado_rod", "天空法杖"]
 ])
 
-var blackListEntity = new Set(["man_of_many_planes:scarlet_biplane","man_of_many_planes:economy_plane","minecraft:boat","minecraft:chest_boat",
-"immersive_aircraft:airship","immersive_aircraft:cargo_airship","immersive_aircraft:biplane","immersive_aircraft:gyrodyne",
-"immersive_aircraft:quadrocopter","immersive_aircraft:bamboo_hopper","immersive_aircraft:warship"]); //实体黑名单
+var blackListEntity = new Set(["man_of_many_planes:scarlet_biplane", "man_of_many_planes:economy_plane", "minecraft:boat", "minecraft:chest_boat",
+    "immersive_aircraft:airship", "immersive_aircraft:cargo_airship", "immersive_aircraft:biplane", "immersive_aircraft:gyrodyne",
+    "immersive_aircraft:quadrocopter", "immersive_aircraft:bamboo_hopper", "immersive_aircraft:warship"]); //实体黑名单
 
-var bannedEffects = new Set(["minecraft:dolphins_grace","farm_and_charm:grandmas_blessing","farm_and_charm:farmers_blessing","minecraft:levitation"]);
+var bannedEffects = new Set(["minecraft:dolphins_grace", "farm_and_charm:grandmas_blessing", "farm_and_charm:farmers_blessing", "minecraft:levitation"]);
 
 var debuffType = [
-    {id:"minecraft:nausea",duration:15 * 20,lvl:2}, //tick
-    {id:"minecraft:slowness",duration:3 * 20,lvl:0},
-    {id:"minecraft:poison",duration:3 * 20,lvl:2},
-    {id:"minecraft:hunger",duration:15 * 20,lvl:7},
-    {id:"cataclysm:stun",duration:3 * 20,lvl:0},
-    {id:"minecraft:blindness",duration:3 * 20,lvl:0}
+    { id: "minecraft:nausea", duration: 15 * 20, lvl: 2 }, //tick
+    { id: "minecraft:slowness", duration: 3 * 20, lvl: 0 },
+    { id: "minecraft:poison", duration: 3 * 20, lvl: 2 },
+    { id: "minecraft:hunger", duration: 15 * 20, lvl: 7 },
+    { id: "cataclysm:stun", duration: 3 * 20, lvl: 0 },
+    { id: "minecraft:blindness", duration: 3 * 20, lvl: 0 }
 ];
 
 var HOLD_ON_TIME_IN_SECONDS = 90; //亡语坚持时间
@@ -60,18 +60,18 @@ var defaultChargeBoxNBT = `Items:[{Slot:1b,id:"minecraft:iron_pickaxe",tag:{Dama
 
 /**@type {fieldConfig} */
 const fieldConfig = new Map([  //使用Map集成配置
-    [10000,{
-        fieldOrBossId : 10000,  
-        tagOrFieldObjName : "SingalActive10000",  
-        buttonPos : new BlockPos(-92,-46,-25),  
-        lootAndWarnBlockPos : new BlockPos(-92,-33,3),  
-        tpToPos : new Vec3d(-70.60,-35.00,3.44),
-        tpBackPos : new Vec3d(-92,-46,-8),  
-        chargeBoxPos : new BlockPos(-90,-35,3),  
-        summonPos : new Vec3d(-91.5,-34,3.5),  
-        fieldAABB : AABB.of(-64,-2,30,-119,-36,-24),  
-        battleType : "Singal",  
-        fieldHeight : -36,
+    [10000, {
+        fieldOrBossId: 10000,
+        tagOrFieldObjName: "SingalActive10000",
+        buttonPos: new BlockPos(-92, -46, -25),
+        lootAndWarnBlockPos: new BlockPos(-92, -33, 3),
+        tpToPos: new Vec3d(-70.60, -35.00, 3.44),
+        tpBackPos: new Vec3d(-92, -46, -8),
+        chargeBoxPos: new BlockPos(-90, -35, 3),
+        summonPos: new Vec3d(-91.5, -34, 3.5),
+        fieldAABB: AABB.of(-64, -2, 30, -119, -36, -24),
+        battleType: "Singal",
+        fieldHeight: -36,
         //isBossSummoned : false,    //已写入动态文件
         //difficulty : ""   //已写入动态文件
     }],
@@ -149,99 +149,99 @@ const fieldConfig = new Map([  //使用Map集成配置
 /**@type {difficultyParameter} */
 
 const difficultyParameter = new Map([
-    ["easy",{
-        bossSpeedMultiplier : 1,
-        enemyDamageMultiplier : 1.5,
+    ["easy", {
+        bossSpeedMultiplier: 1,
+        enemyDamageMultiplier: 1.5,
         //---
-        fireballCooldown : 800, 
-        fireballMaxWaveCount : 1,
-        extraFireballAccelerationScale : 0,
-        extraFireballOrMagicDamageScale : 1,  
-        extraFireballOrExplosionDamageScale : 1,
+        fireballCooldown: 800,
+        fireballMaxWaveCount: 1,
+        extraFireballAccelerationScale: 0,
+        extraFireballOrMagicDamageScale: 1,
+        extraFireballOrExplosionDamageScale: 1,
         //---
-        debuffProbability : 0,  
+        debuffProbability: 0,
         //---
-        realDamageMultiplier : 0, 
+        realDamageMultiplier: 0,
         //--- 
-        flameSummonCooldown : 600,  
-        flameStrikeWaitTime : 60,
-        flameStrikeDuration : 60,
-        flameStrikeDamage : 8,
-        flameStrikeRadius : 6.5,
-        flameStrikeCount : 1,
+        flameSummonCooldown: 600,
+        flameStrikeWaitTime: 60,
+        flameStrikeDuration: 60,
+        flameStrikeDamage: 8,
+        flameStrikeRadius: 6.5,
+        flameStrikeCount: 1,
         //---
-        finalServantDmgMultiplier : 0,  
+        finalServantDmgMultiplier: 0,
         //---
-        canBossDecayHealth : 0,
-        bossMaxHealthDecayCount : 0, 
-        servantMaxHealthDecayCount : 0, 
-        healthDecayCooldown : 0, 
+        canBossDecayHealth: 0,
+        bossMaxHealthDecayCount: 0,
+        servantMaxHealthDecayCount: 0,
+        healthDecayCooldown: 0,
         //---
-        stringLootTable : `LootTable:"challenge:chests/easyreward"`
+        stringLootTable: `LootTable:"challenge:chests/easyreward"`
     }],
-    ["normal",{
-        bossSpeedMultiplier : 1.1,
-        enemyDamageMultiplier : 3,
+    ["normal", {
+        bossSpeedMultiplier: 1.1,
+        enemyDamageMultiplier: 3,
         //---
-        fireballCooldown : 400,  
-        fireballMaxWaveCount : 2,
-        extraFireballAccelerationScale : 0.05,
-        extraFireballOrMagicDamageScale : 1,
-        extraFireballOrExplosionDamageScale : 1,
+        fireballCooldown: 400,
+        fireballMaxWaveCount: 2,
+        extraFireballAccelerationScale: 0.05,
+        extraFireballOrMagicDamageScale: 1,
+        extraFireballOrExplosionDamageScale: 1,
         //---
-        debuffProbability : 50,  
+        debuffProbability: 50,
         //---
-        realDamageMultiplier : 0.05,
+        realDamageMultiplier: 0.05,
         //---
-        flameSummonCooldown : 320,
-        flameStrikeWaitTime : 45,
-        flameStrikeDuration : 80,
-        flameStrikeDamage : 14,
-        flameStrikeRadius : 6.5,
-        flameStrikeCount : 1,
+        flameSummonCooldown: 320,
+        flameStrikeWaitTime: 45,
+        flameStrikeDuration: 80,
+        flameStrikeDamage: 14,
+        flameStrikeRadius: 6.5,
+        flameStrikeCount: 1,
         //---
-        finalServantDmgMultiplier : 0.125,
+        finalServantDmgMultiplier: 0.125,
         //---
-        canBossDecayHealth : 0,
-        bossMaxHealthDecayCount : 0, 
-        servantMaxHealthDecayCount : 2,
-        healthDecayCooldown : 100, 
+        canBossDecayHealth: 0,
+        bossMaxHealthDecayCount: 0,
+        servantMaxHealthDecayCount: 2,
+        healthDecayCooldown: 100,
         //---
-        stringLootTable : `LootTable:"challenge:chests/normalreward"`
+        stringLootTable: `LootTable:"challenge:chests/normalreward"`
     }],
-    ["hard",{
-        bossSpeedMultiplier : 1.2,
-        enemyDamageMultiplier : 4,
+    ["hard", {
+        bossSpeedMultiplier: 1.2,
+        enemyDamageMultiplier: 4,
         //---
-        fireballCooldown : 150,  
-        fireballMaxWaveCount : 3, 
-        extraFireballAccelerationScale : 0.12,
-        extraFireballOrMagicDamageScale : 1,
-        extraFireballOrExplosionDamageScale : 1,
+        fireballCooldown: 150,
+        fireballMaxWaveCount: 3,
+        extraFireballAccelerationScale: 0.12,
+        extraFireballOrMagicDamageScale: 1,
+        extraFireballOrExplosionDamageScale: 1,
         //---
-        debuffProbability : 85, 
+        debuffProbability: 85,
         //---
-        realDamageMultiplier : 0.1,
+        realDamageMultiplier: 0.1,
         //---
-        flameSummonCooldown : 160,
-        flameStrikeWaitTime : 30,
-        flameStrikeDuration : 100,
-        flameStrikeDamage : 20,
-        flameStrikeRadius : 6.5,
-        flameStrikeCount : 2,
+        flameSummonCooldown: 160,
+        flameStrikeWaitTime: 30,
+        flameStrikeDuration: 100,
+        flameStrikeDamage: 20,
+        flameStrikeRadius: 6.5,
+        flameStrikeCount: 2,
         //---
-        finalServantDmgMultiplier : 0.25,
+        finalServantDmgMultiplier: 0.25,
         //---
-        canBossDecayHealth : 0,
-        bossMaxHealthDecayCount : 0, 
-        servantMaxHealthDecayCount : 4,
-        healthDecayCooldown : 60, 
+        canBossDecayHealth: 0,
+        bossMaxHealthDecayCount: 0,
+        servantMaxHealthDecayCount: 4,
+        healthDecayCooldown: 60,
         //---
-        stringLootTable : `LootTable:"challenge:chests/hardreward"`
+        stringLootTable: `LootTable:"challenge:chests/hardreward"`
     }],
-    ["hell",{
-        bossSpeedMultiplier : 1.5,
-        enemyDamageMultiplier : 4,
+    ["hell", {
+        bossSpeedMultiplier: 1.5,
+        enemyDamageMultiplier: 4,
         //---
         fireballCooldown : 90,  
         fireballMaxWaveCount : 5, //这里应用3-5波随机出
@@ -260,7 +260,7 @@ const difficultyParameter = new Map([
         flameStrikeRadius : 7,
         flameStrikeCount : 2,
         //---
-        finalServantDmgMultiplier : 0.25,
+        finalServantDmgMultiplier: 0.25,
         //---
         canBossDecayHealth : 1,
         bossMaxHealthDecayCount : 2, 
@@ -298,25 +298,25 @@ const difficultyParameter = new Map([
  * @type {Map<string, DifficultyConfig>}
  */
 const ServantMonsterConfig = new Map([  //需要免疫非玩家伤害(魔法和爆炸)
-    ["normal",{
-        cataclysm_ignited_revenant : {
-            entityType : "cataclysm:ignited_revenant",
-            HP : 135,
-            bulletDamageMultiplier : 0.7,   //对应tacz0.3抗性(0 -> 1 damage下降)(1 - 0.6(乘数因子)),l2damage的抗性是直接用的乘数因子(0.6)
-            followPlayerRange : 50,  //跟踪范围
-            PersistenceRequired : 1,  //防止自然消失(使用mergeNBT设置)
-            canDecayHealth : 0,
-            summonCount : 2 //生成2只
+    ["normal", {
+        cataclysm_ignited_revenant: {
+            entityType: "cataclysm:ignited_revenant",
+            HP: 135,
+            bulletDamageMultiplier: 0.7,   //对应tacz0.3抗性(0 -> 1 damage下降)(1 - 0.6(乘数因子)),l2damage的抗性是直接用的乘数因子(0.6)
+            followPlayerRange: 50,  //跟踪范围
+            PersistenceRequired: 1,  //防止自然消失(使用mergeNBT设置)
+            canDecayHealth: 0,
+            summonCount: 2 //生成2只
         },
-        minecraft_piglin_brute : {
-            entityType : "minecraft:piglin_brute",
-            HP : 50, //待测试
-            bulletDamageMultiplier : 0.7, //待测试
-            followPlayerRange : 50,
-            PersistenceRequired : 1,
-            canDecayHealth : 1,  //吃到伤害直接掉八分之一HP
-            isFinalTurn : 1,  
-            summonCount : 7
+        minecraft_piglin_brute: {
+            entityType: "minecraft:piglin_brute",
+            HP: 50, //待测试
+            bulletDamageMultiplier: 0.7, //待测试
+            followPlayerRange: 50,
+            PersistenceRequired: 1,
+            canDecayHealth: 1,  //吃到伤害直接掉八分之一HP
+            isFinalTurn: 1,
+            summonCount: 7
         },
         minecraft_phantom : {
             entityType : "minecraft:phantom",
@@ -422,38 +422,38 @@ const PlayerIPFile = 'kjsReflect\\challenge_server\\IPconfig.json'
 const BossFightFile = 'kjsReflect\\challenge_server\\BossFightFile.json'
 const FieldStatusFile = 'kjsReflect\\challenge_server\\FieldStatus.json'
 
-var excIPInit = {} 
+var excIPInit = {}
 //working status =>
-    /*
-    {
-        "playerName":[...]
-    }
-    */
-var IpRecordInit = 
+/*
+{
+    "playerName":[...]
+}
+*/
+var IpRecordInit =
 {
     "player_name_regex": ".\\w+|\\w+",
     "users": {},
     "banned_player": [],
     "banned_ips": []
 }
-var BossFightFileInit = 
+var BossFightFileInit =
 {
-    "SingleBoss":{
-        "playername":0
+    "SingleBoss": {
+        "playername": 0
     },
-    "MultiBoss":{
-        "playername":0
+    "MultiBoss": {
+        "playername": 0
     }
 }
-var FieldStatusInit = 
+var FieldStatusInit =
 {
-	"lastUpdateDay" : 0,
-	"SingleBoss": {
-		"playername": 0
-	},
-	"MultiBoss": {
-		"playername": 0
-	}
+    "lastUpdateDay": 0,
+    "SingleBoss": {
+        "playername": 0
+    },
+    "MultiBoss": {
+        "playername": 0
+    }
 }
 
 
@@ -469,7 +469,7 @@ var FieldStatusInit =
 
 
 //method below =======================================
-const {random} = Utils;
+const { random } = Utils;
 const MobEffectInstance = Java.loadClass(`net.minecraft.world.effect.MobEffectInstance`)
 const DustParticleOptions = Java.loadClass(`net.minecraft.core.particles.DustParticleOptions`);
 const LivingEntity = Java.loadClass(`net.minecraft.world.entity.LivingEntity`);
@@ -509,18 +509,18 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {configDetails} config
          * @returns {string | void}
          */
-        difficultyChoose : function (player ,config) {
-            switch (String(player.mainHandItem.id)){
+        difficultyChoose: function (player, config) {
+            switch (String(player.mainHandItem.id)) {
                 /*case "minecraft:wooden_pickaxe" :
                     break;*/
-                case "minecraft:iron_pickaxe" :
-                    single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"difficulty","easy");
+                case "minecraft:iron_pickaxe":
+                    single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile, config.fieldOrBossId, "difficulty", "easy");
                     return "easy";
-                case "minecraft:golden_pickaxe" :
-                    single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"difficulty","normal");
+                case "minecraft:golden_pickaxe":
+                    single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile, config.fieldOrBossId, "difficulty", "normal");
                     return "normal";
-                case "minecraft:diamond_pickaxe" :
-                    single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"difficulty","hard");
+                case "minecraft:diamond_pickaxe":
+                    single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile, config.fieldOrBossId, "difficulty", "hard");
                     return "hard";
                 case "minecraft:netherite_pickaxe" :
                     single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"difficulty","hell");
@@ -537,7 +537,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {BlockPos} blockPos
          * @returns {configDetails|null}
          */
-        getConfigByButtonPos : function (blockPos) {  //根据按钮位置获取配置项
+        getConfigByButtonPos: function (blockPos) {  //根据按钮位置获取配置项
             /**
              * @param {number} id
              */
@@ -555,12 +555,12 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
             return null;
         },
-    //-------------------------------------------------------------------------------------    
+        //-------------------------------------------------------------------------------------    
         /**
          * @param {BlockPos} blockPos
          * @returns {configDetails|null}
          */
-        getConfigByWarnBlockPos : function (blockPos) {  //根据警戒方块位置获取配置项
+        getConfigByWarnBlockPos: function (blockPos) {  //根据警戒方块位置获取配置项
             /**
              * @param {number} id
              */
@@ -571,7 +571,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
             return null;
         },
-    //-------------------------------------------------------------------------------------    
+        //-------------------------------------------------------------------------------------    
         /**
          * @param {string} tagOrObjName
          * @returns {configDetails|null}
@@ -584,12 +584,12 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
             return null;
         },
-    //-------------------------------------------------------------------------------------  
+        //-------------------------------------------------------------------------------------  
         /**
          * @param {number|Internal.LivingEntity} Any
          * @returns {configDetails|null}
          */
-        getConfigByID : function (Any) {  //根据bossID或直接ID获取配置项
+        getConfigByID: function (Any) {  //根据bossID或直接ID获取配置项
             if (typeof Any == "number") {
                 return fieldConfig.get(Any)
             } else if (Any instanceof LivingEntity) {
@@ -598,13 +598,13 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
             return null;
         },
-    //-------------------------------------------------------------------------------------    
+        //-------------------------------------------------------------------------------------    
         /**
          * @param {Internal.Player} player
          * @returns {configDetails|null}
          */
-        getConfigByPlayerTags : function (player) {  //根据player的tag获取配置项
-            for (const [id, config] of fieldConfig) { 
+        getConfigByPlayerTags: function (player) {  //根据player的tag获取配置项
+            for (const [id, config] of fieldConfig) {
                 if (player.tags.contains(config.tagOrFieldObjName)) {
                     return config;
                 }
@@ -621,15 +621,15 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {String} ObjName 
          * @returns {void}
          */
-        addPlayerToObj : function (server ,playerName ,ObjName ,score) {
+        addPlayerToObj: function (server, playerName, ObjName, score) {
             server.runCommandSilent(`/scoreboard players add ${playerName} ${ObjName} ${score}`);
         },
-    //------------------------------------------------------------------------------------- 
+        //------------------------------------------------------------------------------------- 
         /**
          * @param {Internal.Player} player 
          * @returns {boolean} 
          */
-        scanBannedItem : function (player) {
+        scanBannedItem: function (player) {
             var hasBannedItem = false
             //(迭代器创建快照,避免并发修改)
             //迭代器,类似指针,从第0位之前的位置开始
@@ -650,7 +650,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
             return hasBannedItem;
         },
-    //-------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {string} StringNBT 
@@ -658,7 +658,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {Internal.Level} level 
          * @returns {void} 
          */
-        resetFieldByButton : function (server ,StringNBT ,buttonBlockPos ,level) {
+        resetFieldByButton: function (server, StringNBT, buttonBlockPos, level) {
             var config = single_Ignis.getConfigManager.getConfigByButtonPos(buttonBlockPos);
             if (config == null) {
                 console.error(`配置项为空!`);
@@ -670,7 +670,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             var zAABBMax = fieldAABB.maxZ;
             var xAABBMin = fieldAABB.minX;
             var zAABBMin = fieldAABB.minZ;
-            var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+            var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "isBossSummoned", FieldStatusFile);
             server.runCommandSilent(`/forceload add ${xAABBMax} ${zAABBMax} ${xAABBMin} ${zAABBMin}`);
             if (isBossSummoned) {
                 console.warn(`试图在boss已召唤的情况下进入场地,或数据出现问题`);
@@ -679,7 +679,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
             level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type != "minecraft:item" && entity.type != "minecraft:player").forEach(entity => {
                 if (entity.type == "cataclysm:ignis") {
-                    this.execAfterBossDied(server ,entity ,level);
+                    this.execAfterBossDied(server, entity, level);
                 }
                 entity.discard();
             })
@@ -687,12 +687,12 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             server.runCommandSilent(`/fill ${config.fieldAABB.minX} ${config.fieldHeight} ${config.fieldAABB.minZ} ${config.fieldAABB.maxX} ${config.fieldHeight + 5} ${config.fieldAABB.maxZ} air replace ice`);
             server.runCommandSilent(`/setblock ${config.lootAndWarnBlockPos.x} ${config.lootAndWarnBlockPos.y} ${config.lootAndWarnBlockPos.z} alexscaves:hazmat_warning_block`);
             server.runCommandSilent(`/setblock ${config.chargeBoxPos.x} ${config.chargeBoxPos.y} ${config.chargeBoxPos.z} air`);
-            server.scheduleInTicks(1,() => {
+            server.scheduleInTicks(1, () => {
                 server.runCommandSilent(`/setblock ${config.chargeBoxPos.x} ${config.chargeBoxPos.y} ${config.chargeBoxPos.z} minecraft:chest{${StringNBT}}`);
                 server.runCommandSilent(`/forceload remove ${xAABBMax} ${zAABBMax} ${xAABBMin} ${zAABBMin}`);
             })
         },
-    //-------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {BlockPos} buttonBlockPos 
@@ -724,7 +724,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     playerToFieldReflection.delete(String(nearestPlayer.username));
                 }
                 nearestPlayer.tags.add(config.tagOrFieldObjName)  //获取到的player执行命令时遵循命令上下文中其拥有的权限级别,故不能用runCommand
-                nearestPlayer.teleportTo(config.tpToPos.x(),config.tpToPos.y(),config.tpToPos.z());
+                nearestPlayer.teleportTo(config.tpToPos.x(), config.tpToPos.y(), config.tpToPos.z());
                 if (ExceptionIPs != null && ExceptionIPs.get(String(nearestPlayer.username)) != null) {
                     nearestPlayer.tell(Component.gold(`请勿一人操控多个账号重复挑战,这可能会影响奖励发放`));
                 }
@@ -732,7 +732,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 return true;
             }
         },
-    //-------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server
          * @param {Internal.BlockContainerJS} block
@@ -741,18 +741,18 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {Internal.Level} level
          * @returns {void}
          */
-        preSummon : function (server ,level ,player ,block ,warnBlockPos) {   //等效于 private static void preSummon (a,b,c,d) {...}
+        preSummon: function (server, level, player, block, warnBlockPos) {   //等效于 private static void preSummon (a,b,c,d) {...}
             var config = single_Ignis.getConfigManager.getConfigByWarnBlockPos(warnBlockPos);
             if (config == null) {
                 console.error(`配置项为空!`);
                 return;
             }
-            var difficulty = single_Ignis.difficultyManager.difficultyChoose(player,config);
+            var difficulty = single_Ignis.difficultyManager.difficultyChoose(player, config);
             if (difficulty == null) {
                 console.error("难度不存在");
                 return;
             }
-            single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"isBossSummoned",true);
+            single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile, config.fieldOrBossId, "isBossSummoned", true);
             var playername = String(player.username);
             bannedItem.forEach(item => {
                 player.inventory.clear(item);
@@ -781,7 +781,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             block.set("air");
 
             var canBossDecayHp = difficultyParameter.get(difficulty).canBossDecayHealth;
-            server.scheduleInTicks(151,() => {
+            server.scheduleInTicks(151, () => {
                 /** @type {Internal.LivingEntity} */
                 var singleIgnis = level.createEntity("cataclysm:ignis");
                 var entityUUID = String(singleIgnis.stringUuid);
@@ -792,17 +792,17 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     singleIgnis.setMaxHealth(1024);
                     singleIgnis.setHealth(1024);
                 }
-                singleIgnis.setAttributeBaseValue("minecraft:generic.movement_speed",difficultyParameter.get(difficulty).bossSpeedMultiplier * 0.3);
+                singleIgnis.setAttributeBaseValue("minecraft:generic.movement_speed", difficultyParameter.get(difficulty).bossSpeedMultiplier * 0.3);
                 singleIgnis.persistentData.merge(`{isBoss:1,battleType:"${config.battleType}",ID:${config.fieldOrBossId},difficulty:${difficulty}}`);
                 if (canBossDecayHp == 1) {
                     singleIgnis.persistentData.merge(`{canDecayHealth:1}`);
                 }
                 singleIgnis.setPos(config.summonPos);
-                maxRegenationHp.set(entityUUID,singleIgnis.maxHealth);
+                maxRegenationHp.set(entityUUID, singleIgnis.maxHealth);
                 level.addFreshEntity(singleIgnis);
             })
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /** 
          * @param {BlockPos} warnBlockpos
          * @param {Internal.Player} mainPlayer
@@ -810,7 +810,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {Internal.MinecraftServer} server
          * @returns {void}
         */
-        ExecWhileSummoning : function (mainPlayer ,warnBlockpos ,level ,server) {
+        ExecWhileSummoning: function (mainPlayer, warnBlockpos, level, server) {
             var config = single_Ignis.getConfigManager.getConfigByWarnBlockPos(warnBlockpos);
             if (config == null) {
                 console.error(`配置项为空!`);
@@ -819,21 +819,21 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
 
             level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "minecraft:player").forEach(player => {
                 if (player.tags.contains(config.tagOrFieldObjName) && String(player.username) != String(mainPlayer.username)) {
-                    player.teleportTo(config.tpBackPos.x(),config.tpBackPos.y(),config.tpBackPos.z());
+                    player.teleportTo(config.tpBackPos.x(), config.tpBackPos.y(), config.tpBackPos.z());
                     player.tell("已经有人在进行挑战了,请等待下一轮");
                     player.tags.remove(config.tagOrFieldObjName);
                 }
             })
             server.runCommandSilent(`/setblock ${config.chargeBoxPos.x} ${config.chargeBoxPos.y} ${config.chargeBoxPos.z} minecraft:polished_blackstone`);
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.LivingEntity} entity 
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.Level} level
          * @returns {void}
          */
-        execAfterPlayerDead : function (entity ,server ,level) {
+        execAfterPlayerDead: function (entity, server, level) {
             var config = single_Ignis.getConfigManager.getConfigByPlayerTags(entity);
             if (config == null) {
                 console.error(`配置项为空!`);
@@ -845,33 +845,33 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             single_Ignis.GlobalManager.clearAllUselessParams(server,config,entity);
             return;
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.Level} level 
          * @param {configDetails} config
          * @returns {void}
          */
-        resetFieldByID : function (server ,level ,config) {
+        resetFieldByID: function (server, level, config) {
             if (config == null) {
                 console.error(`配置项为空!`);
                 return;
             }
 
             level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "minecraft:player").forEach(player => {
-                player.teleportTo(config.tpBackPos.x(),config.tpBackPos.y(),config.tpBackPos.z());            
+                player.teleportTo(config.tpBackPos.x(), config.tpBackPos.y(), config.tpBackPos.z());
             })
             server.runCommandSilent(`/setblock ${config.lootAndWarnBlockPos.x} ${config.lootAndWarnBlockPos.y} ${config.lootAndWarnBlockPos.z} alexscaves:hazmat_warning_block`);
             server.runCommandSilent(`/setblock ${config.chargeBoxPos.x} ${config.chargeBoxPos.y} ${config.chargeBoxPos.z} minecraft:chest{${defaultChargeBoxNBT}}`);
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.Level} level
          * @param {AABB} fieldAABB 
          * @returns {boolean}
-         */ 
-        shouldGenerateLoot : function (server ,level ,fieldAABB) {
+         */
+        shouldGenerateLoot: function (server, level, fieldAABB) {
             /**@type {Internal.Player} */
             var battlePlayer = null;
             var playerInField = level.getEntitiesWithin(fieldAABB).filter(entity => entity.type == "minecraft:player");
@@ -886,26 +886,26 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     console.debug(`已遍历玩家${player.username},未找到配置`);
                     continue;
                 }
-                var playername = String(player.username); 
+                var playername = String(player.username);
                 var Obj = server.scoreboard.getObjective(config.tagOrFieldObjName);
-                if (server.scoreboard.hasPlayerScore(playername,Obj)) {
+                if (server.scoreboard.hasPlayerScore(playername, Obj)) {
                     battlePlayer = player;
                     break;
                 }
                 console.debug(`已遍历玩家${player.username},未在标识队伍中`)
             }
-            
+
             if (battlePlayer == null) {
-                console.error(`未找到指定玩家`); 
+                console.error(`未找到指定玩家`);
                 return false;
             }
 
             var playername = String(battlePlayer.username);
             //SFC -> SingleFightCount
-            var bool = single_Ignis.GlobalManager.tellPlayerChallengeCount(battlePlayer,true);
+            var bool = single_Ignis.GlobalManager.tellPlayerChallengeCount(battlePlayer, true);
             return bool;
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server
          * @param {number} x 
@@ -914,17 +914,17 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {string} stringLootTable 
          * @returns {void}
          */
-        generateLootChset : function (server,x,y,z,stringLootTable) {
+        generateLootChset: function (server, x, y, z, stringLootTable) {
             server.runCommandSilent(`/setblock ${x} ${y} ${z} minecraft:chest{${stringLootTable}}`);
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.LivingEntity} entity
          * @param {Internal.Level} level 
          * @param {Internal.MinecraftServer} server 
          * @returns {void}
          */
-        execAfterWinning : function (entity ,level ,server) {
+        execAfterWinning: function (entity, level, server) {
             var config = single_Ignis.getConfigManager.getConfigByID(entity);
             if (config == null) {
                 console.error(`配置项为空!`);
@@ -933,14 +933,14 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             var Obj = server.scoreboard.getObjective(config.tagOrFieldObjName);
             var playername = "";
 
-            if (JsonIO.readJson(BossFightFile).isJsonNull()){
-                JsonIO.write(BossFightFile,BossFightFileInit);
+            if (JsonIO.readJson(BossFightFile).isJsonNull()) {
+                JsonIO.write(BossFightFile, BossFightFileInit);
             }
             var allFightCount = JsonIO.readJson(BossFightFile).getAsJsonObject();  //记录在案
             var SingleFightCount = allFightCount.get("SingleBoss").asJsonObject;
-            
+
             level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "minecraft:player").forEach(player => {
-                if (server.scoreboard.hasPlayerScore(String(player.username),Obj)) {
+                if (server.scoreboard.hasPlayerScore(String(player.username), Obj)) {
                     playername = String(player.username);
                 }
                 player.setInvulnerable(true);
@@ -950,12 +950,12 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 })
             })
 
-            var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+            var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "difficulty", FieldStatusFile);
 
-            if (this.shouldGenerateLoot(server ,level ,config.fieldAABB)) {
-                this.generateLootChset(server,config.lootAndWarnBlockPos.x,config.lootAndWarnBlockPos.y,config.lootAndWarnBlockPos.z,difficultyParameter.get(difficulty).stringLootTable);  //生成箱子
-                server.scheduleInTicks(2,() => {
-                    if (level.getBlock(config.lootAndWarnBlockPos.x,config.lootAndWarnBlockPos.y,config.lootAndWarnBlockPos.z).id == "minecraft:air") {
+            if (this.shouldGenerateLoot(server, level, config.fieldAABB)) {
+                this.generateLootChset(server, config.lootAndWarnBlockPos.x, config.lootAndWarnBlockPos.y, config.lootAndWarnBlockPos.z, difficultyParameter.get(difficulty).stringLootTable);  //生成箱子
+                server.scheduleInTicks(2, () => {
+                    if (level.getBlock(config.lootAndWarnBlockPos.x, config.lootAndWarnBlockPos.y, config.lootAndWarnBlockPos.z).id == "minecraft:air") {
                         console.error(`奖励箱生成异常!`);
                     }
                 })
@@ -964,13 +964,13 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             if (SingleFightCount.get(playername) != null) {
                 var detailSFC = SingleFightCount.get(playername).asInt;
                 var newSFC = detailSFC + 1;
-                SingleFightCount.add(playername,newSFC);
-                JsonIO.write(BossFightFile,allFightCount);
+                SingleFightCount.add(playername, newSFC);
+                JsonIO.write(BossFightFile, allFightCount);
             } else {
-                SingleFightCount.add(playername,1);
-                JsonIO.write(BossFightFile,allFightCount);
+                SingleFightCount.add(playername, 1);
+                JsonIO.write(BossFightFile, allFightCount);
             }
-            
+
             IIIStageIgnis.delete(String(entity.stringUuid));
 
             server.runCommandSilent(`/title ${playername} title {"text":"半分后回到大厅,请勿退出服务器","color":"yellow","bold":"true"}`);
@@ -979,27 +979,27 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 this.resetFieldByID(server,level,config);
             })
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server
          * @param {Internal.LivingEntity} entity
          * @param {Internal.Level} level
          * @returns {void}
          */
-        execAfterBossDied : function (server ,entity ,level) {
+        execAfterBossDied: function (server, entity, level) {
             var config = single_Ignis.getConfigManager.getConfigByID(entity);
             if (config == null) {
                 console.error(`配置项为空!`);
                 return;
             }
-            single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"isBossSummoned",false);
-            single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"difficulty","");
-            
+            single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile, config.fieldOrBossId, "isBossSummoned", false);
+            single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile, config.fieldOrBossId, "difficulty", "");
+
             activeBossbarTimer.delete(config.fieldOrBossId);
             server.runCommandSilent(`/bossbar remove minecraft:${config.fieldOrBossId}`);
             var entityUUID = String(entity.stringUuid);
             IIIStageIgnis.delete(entityUUID);
-            hitCount.delete(entityUUID);  
+            hitCount.delete(entityUUID);
             maxRegenationHp.delete(entityUUID);
             activeBossbarTimer.delete(config.fieldOrBossId);
 
@@ -1007,14 +1007,14 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 entity.discard();
             })
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server
          * @param {Internal.Player} player
          * @param {Internal.Level} level
          * @returns {void}
          */
-        tryDiscardBossByPlayer : function (server ,player ,level) {
+        tryDiscardBossByPlayer: function (server, player, level) {
             var config = single_Ignis.getConfigManager.getConfigByPlayerTags(player);
             if (config == null) {
                 return;
@@ -1022,21 +1022,21 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             if (level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "minecraft:player").isEmpty()) {
                 level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type != "minecraft:item" && entity.type != "minecraft:player").forEach(entity => {
                     if (entity.type == "cataclysm:ignis") {
-                        this.execAfterBossDied(server, entity ,level);
+                        this.execAfterBossDied(server, entity, level);
                     }
                     entity.discard();
                 })
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server
          * @param {Internal.Level} level
          * @returns {void}
          */
-        tryDiscardBossByGlobal : function (server ,level) {
+        tryDiscardBossByGlobal: function (server, level) {
             for (const [id, config] of fieldConfig) { //{[[id1,{...}],[id2,{...}]]},
-                var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+                var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "isBossSummoned", FieldStatusFile);
                 if (!isBossSummoned) continue;
                 var fieldAABB = config.fieldAABB;
                 var xAABBMax = fieldAABB.maxX;
@@ -1051,14 +1051,14 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 if (entitiesInField.filter(entity => entity.type == "minecraft:player").isEmpty()) {
                     entitiesInField.filter(entity => entity.type != "minecraft:item" && entity.type != "minecraft:player").forEach(entity => {
                         if (entity.type == "cataclysm:ignis") {
-                            this.execAfterBossDied(server ,entity ,level);
+                            this.execAfterBossDied(server, entity, level);
                             isBossReallyExist = true;
                         }
                         entity.discard();
                     })
                     if (!isBossReallyExist) {
-                        single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"difficulty","");
-                        single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"isBossSummoned",false);
+                        single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile, config.fieldOrBossId, "difficulty", "");
+                        single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile, config.fieldOrBossId, "isBossSummoned", false);
                     }
                     console.log(`已清除无人场地的boss,场地id为${config.fieldOrBossId}`);
                 }
@@ -1070,8 +1070,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {Internal.CommandSourceStack} source
          * @returns {void}
          */
-        tryTpBattlePlayerBackToField : function (source) {
-            const {server ,player ,level} = source;
+        tryTpBattlePlayerBackToField: function (source) {
+            const { server, player, level } = source;
             var config = single_Ignis.getConfigManager.getConfigByPlayerTags(player);
             if (config == null) {
                 player.tell(Component.red(`您当前不在任何一场战斗中!`));
@@ -1096,14 +1096,14 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     return;
                 }
                 var bossUUID = String(boss.stringUuid);
-                bossHpWhenPlayerUseCmd.set(bossUUID,boss.health);
-                
-                var isPlayerInBattle = server.scoreboard.hasPlayerScore(playername,Obj);
+                bossHpWhenPlayerUseCmd.set(bossUUID, boss.health);
+
+                var isPlayerInBattle = server.scoreboard.hasPlayerScore(playername, Obj);
                 if (isPlayerInBattle) {
                     if (!backingFieldPlayerList.has(playername)) {
                         player.tell(Component.green(`五秒后即将回到场地`));
                         backingFieldPlayerList.add(playername);
-                        server.scheduleInTicks(100 ,() => {
+                        server.scheduleInTicks(100, () => {
                             backingFieldPlayerList.delete(playername);
                             var correctHp = bossHpWhenPlayerUseCmd.get(bossUUID);
                             var currentBoss = level.getEntity(boss.uuid);
@@ -1116,7 +1116,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                             boss.setHealth(correctHp);
                             bossHpWhenPlayerUseCmd.delete(bossUUID);
                             if (player != null) {
-                                player.teleportTo(config.summonPos.x(),config.summonPos.y(),config.summonPos.z());
+                                player.teleportTo(config.summonPos.x(), config.summonPos.y(), config.summonPos.z());
                             }
                         })
                     } else {
@@ -1129,39 +1129,39 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 }
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server
          * @param {Internal.Level} level
          * @returns {void}
          */
-        checkAndHandlePlayerCountViolation : function (server,level) {
-            for (const [id, config] of fieldConfig) { 
-                var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+        checkAndHandlePlayerCountViolation: function (server, level) {
+            for (const [id, config] of fieldConfig) {
+                var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "isBossSummoned", FieldStatusFile);
                 if (!isBossSummoned) continue;
                 var isBossReallyExist = false;
                 var entitiesInField = level.getEntitiesWithin(config.fieldAABB);
                 if (entitiesInField.filter(entity => entity.type == "minecraft:player").size() >= 2) {
                     entitiesInField.filter(entity => entity.type != "minecraft:item" && entity.type != "minecraft:player").forEach(entity => {
                         if (entity.type == "cataclysm:ignis") {
-                            this.execAfterBossDied(server ,entity ,level);
+                            this.execAfterBossDied(server, entity, level);
                             isBossReallyExist = true;
                         }
                         entity.discard();
                     })
                     entitiesInField.filter(entity => entity.type == "minecraft:player").forEach(player => {
-                        player.teleportTo(config.tpBackPos.x(),config.tpBackPos.y(),config.tpBackPos.z());
+                        player.teleportTo(config.tpBackPos.x(), config.tpBackPos.y(), config.tpBackPos.z());
                         player.tell(`场地内玩家数量异常,挑战已中断`);
-                    }) 
+                    })
                     if (!isBossReallyExist) {
-                        single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"difficulty","");
-                        single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile,config.fieldOrBossId,"isBossSummoned",false);
+                        single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile, config.fieldOrBossId, "difficulty", "");
+                        single_Ignis.GlobalManager.updateFieldStatusToJson(FieldStatusFile, config.fieldOrBossId, "isBossSummoned", false);
                     }
                     console.log(`已清除人数违规场地的boss,场地id为${config.fieldOrBossId}`);
                 }
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.Player} player
          * @param {BlockPos} lootBlockPos
@@ -1169,7 +1169,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {Internal.BlockRightClickedEventJS} event
          * @returns {void}
          */
-        preventRewardTheft : function (player ,lootBlockPos ,server ,event) {
+        preventRewardTheft: function (player, lootBlockPos, server, event) {
             var config = single_Ignis.getConfigManager.getConfigByWarnBlockPos(lootBlockPos);
             if (config == null) {
                 console.error(`配置项为空!`);
@@ -1181,7 +1181,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 console.error(`计分板异常!`);
                 return;
             }
-            if (server.scoreboard.hasPlayerScore(playername,Obj)) {
+            if (server.scoreboard.hasPlayerScore(playername, Obj)) {
                 console.log(`玩家${playername}获取了奖励`);
                 return;
             } else {
@@ -1200,7 +1200,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {Internal.MinecraftServer} server 
          * @returns {void}
          */
-        preventJoinField : function (player ,server) {
+        preventJoinField: function (player, server) {
             var config = single_Ignis.getConfigManager.getConfigByPlayerTags(player);
             if (config == null) {
                 console.warn(`无登入标签`);
@@ -1208,25 +1208,25 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
             }
             var playername = String(player.username);
             var Obj = server.scoreboard.getObjective(config.tagOrFieldObjName);
-            if (player.tags.contains(config.tagOrFieldObjName) && !server.scoreboard.hasPlayerScore(playername,Obj)) {
-                player.teleportTo(config.tpBackPos.x(),config.tpBackPos.y(),config.tpBackPos.z());
+            if (player.tags.contains(config.tagOrFieldObjName) && !server.scoreboard.hasPlayerScore(playername, Obj)) {
+                player.teleportTo(config.tpBackPos.x(), config.tpBackPos.y(), config.tpBackPos.z());
                 player.tags.remove(config.tagOrFieldObjName);
                 player.tell(`已经有人在进行挑战了,请等待下一轮`);  //杜绝中途加入
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.Player} player 
          * @param {Internal.MinecraftServer} server 
          * @returns {void}
          */
-        execAfterPlayerLogin : function (player ,server) {
-            server.scheduleInTicks(10,()=>{
+        execAfterPlayerLogin: function (player, server) {
+            server.scheduleInTicks(10, () => {
                 var UUid = String(player.uuid);
                 summonOutTime.delete(UUid);
 
                 player.setInvulnerable(true);  //登入后无敌
-                single_Ignis.GlobalManager.IpCheck(server,player);
+                single_Ignis.GlobalManager.IpCheck(server, player);
 
                 if (player.tags.isEmpty()) return;
 
@@ -1241,17 +1241,17 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     return;
                 }
 
-                this.preventJoinField(player,server);
-                
+                this.preventJoinField(player, server);
+
             })
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.Player} player 
          * @param {Internal.MinecraftServer} server 
          * @returns {void}
          */
-        execAfterPlayerLogout : function (player ,server) {
+        execAfterPlayerLogout: function (player, server) {
             var playername = String(player.username);
             playerToFieldReflection.delete(playername);
             var config = single_Ignis.getConfigManager.getConfigByPlayerTags(player);
@@ -1488,21 +1488,21 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {Internal.LivingEntityHurtEventJS} event
          * @returns {void}
          */
-        execPlayerUndying : function (server ,player ,level ,event) {
+        execPlayerUndying: function (server, player, level, event) {
             var playerUUid = String(player.stringUuid);
             player.setHealth(3);
             player.playSound("minecraft:item.totem.use");
-            level.spawnParticles(new DustParticleOptions(new Vec3f(0.0,1.0,0.50196),0.9), false, player.x, player.y + 1, player.z, 1, 1, 1, 1000, 1)
+            level.spawnParticles(new DustParticleOptions(new Vec3f(0.0, 1.0, 0.50196), 0.9), false, player.x, player.y + 1, player.z, 1, 1, 1, 1000, 1)
             player.setInvulnerable(true);
-            PlayerHasDied.set(playerUUid,1);
+            PlayerHasDied.set(playerUUid, 1);
             server.tell(`三阶段不死效果已被触发,剩余0次`);
-            server.scheduleInTicks(60,() => {
+            server.scheduleInTicks(60, () => {
                 player.setInvulnerable(false);
                 server.tell(`不死效果已结束`)
             })
             event.cancel();
         },
-    //===============================================================================================
+        //===============================================================================================
         /**
          * 这个方法走Internal.LivingHurtEvent事件下的自定义全局LivingHurtHandler方法
          * @param {Internal.LivingEntity} entity 
@@ -1533,7 +1533,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 }
             }
         },
-    //===============================================================================================
+        //===============================================================================================
         /**
          * @param {Internal.LivingEntity} entity 
          * @param {Internal.MinecraftServer} server 
@@ -1554,7 +1554,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                         console.error(`配置项为空!`);
                         return;
                     }
-                    var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+                    var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "difficulty", FieldStatusFile);
                     var currentPlayerHp = entity.health;
                     if (difficulty == "easy") return;
                     if (source.actual.persistentData.getInt("isBoss") != 0) {  //为Boss 
@@ -1566,7 +1566,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                             }
                             if (realDamage > currentPlayerHp) {
                                 if (!PlayerHasDied.has(playerUUid)) {
-                                    this.execPlayerUndying(server,entity,level,event);
+                                    this.execPlayerUndying(server, entity, level, event);
                                 } else {
                                     server.runCommandSilent(`/damage ${playerName} ${realDamage} minecraft:out_of_world`);
                                 }
@@ -1581,18 +1581,18 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                         }
                         if (servantDamage > currentPlayerHp) {
                             if (!PlayerHasDied.has(playerUUid)) {
-                                this.execPlayerUndying(server,entity,level,event);
+                                this.execPlayerUndying(server, entity, level, event);
                             } else {
                                 server.runCommandSilent(`/damage ${playerName} ${servantDamage} minecraft:out_of_world`);
                             }
                         }
-                        this.execHealthDecay(entity,server,source,difficulty);
+                        this.execHealthDecay(entity, server, source, difficulty);
                         event.cancel();
                     }
                 }
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.LivingEntity} entity 
          * @param {Internal.MinecraftServer} server 
@@ -1600,8 +1600,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {string} difficulty
          * @returns {void} - 简单模式目前不可用(0.0)
          */
-        execHealthDecay : function (entity, server ,source ,difficulty) {
-            if (entity.isPlayer()) {  
+        execHealthDecay: function (entity, server, source, difficulty) {
+            if (entity.isPlayer()) {
                 if (source.actual != null) {
                     var playerName = String(entity.username);
                     if (difficulty == null) {
@@ -1631,7 +1631,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 }
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.LivingEntity} entity 
          * @param {Internal.MinecraftServer} server 
@@ -1639,7 +1639,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @returns {void}
          */
 
-        execIgnisStageChange : function (entity ,server ,level) {
+        execIgnisStageChange: function (entity, server, level) {
             var entityUUID = String(entity.stringUuid);
             if (entity.health < entity.maxHealth/3*2 && !IIStageIgnis.has(entityUUID) && !IIIStageIgnis.has(entityUUID) && !(entity.persistentData.getInt("isBoss") == 0)) {
                 IIStageIgnis.set(entityUUID,1);
@@ -1648,51 +1648,51 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     this.summonServantMonster(server,level,entity,false);
                 }
             }
-            if (entity.health < entity.maxHealth/3 && !IIIStageIgnis.has(entityUUID) && !(entity.persistentData.getInt("isBoss") == 0) && entity.isAlive()) {
+            if (entity.health < entity.maxHealth / 3 && !IIIStageIgnis.has(entityUUID) && !(entity.persistentData.getInt("isBoss") == 0) && entity.isAlive()) {
                 entity.setInvulnerable(true);
-                maxRegenationHp.set(entityUUID,entity.maxHealth / 3);
-                IIIStageIgnis.set(entityUUID,1);
+                maxRegenationHp.set(entityUUID, entity.maxHealth / 3);
+                IIIStageIgnis.set(entityUUID, 1);
                 IIStageIgnis.delete(entityUUID);
                 if (entity.persistentData.get("difficulty").asString != "easy") {
                     this.summonServantMonster(server,level,entity,false);
                 }
-                server.scheduleInTicks(300,() => {
+                server.scheduleInTicks(300, () => {
                     entity.setInvulnerable(false);
                 })
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.LivingEntity} entity 
          * @returns {void}
          */
-        execIgnisGetAttacked : function (entity) {
+        execIgnisGetAttacked: function (entity) {
             var entityUUID = String(entity.uuid);
             if (hitCount.get(entityUUID) == null) {
-                hitCount.set(entityUUID,1);
+                hitCount.set(entityUUID, 1);
             }
             if (hitCount.get(entityUUID) < 5) {
-                hitCount.set(entityUUID,hitCount.get(entityUUID) + 1);
+                hitCount.set(entityUUID, hitCount.get(entityUUID) + 1);
             } else {
                 hitCount.delete(entityUUID);
-                var resistance = entity.health/entity.maxHealth
+                var resistance = entity.health / entity.maxHealth
                 if (resistance < 0.5) {
                     resistance = 0.5;
                 }
-                entity.setAttributeBaseValue("l2damagetracker:damage_reduction",resistance);
+                entity.setAttributeBaseValue("l2damagetracker:damage_reduction", resistance);
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @returns {void}
          */
-        autoIgnisRegeneration : function (server) {
+        autoIgnisRegeneration: function (server) {
             var ignies = server.entities.filter(entities => entities.type == "cataclysm:ignis")
             for (const ignis of ignies) {
                 if (ignis.persistentData.get("difficulty").asString == "easy") continue;
                 var entityUUID = String(ignis.stringUuid);
-                if (maxRegenationHp.has(entityUUID) && ignis.health < maxRegenationHp.get(entityUUID) && ignis.isAlive()) {    
+                if (maxRegenationHp.has(entityUUID) && ignis.health < maxRegenationHp.get(entityUUID) && ignis.isAlive()) {
                     ignis.setHealth(ignis.health + 2);
                 }
             }
@@ -1721,12 +1721,12 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {number} extraAccelerationScale
          * @returns {void}
          */
-        summonSingleFireball : function (level ,config, extraAccelerationScale) {
+        summonSingleFireball: function (level, config, extraAccelerationScale) {
             let scanAABB = config.fieldAABB;
             level.getEntitiesWithin(scanAABB).forEach(entity => {
                 if (entity.type == "cataclysm:ignis") {
                     let player = level.getNearestPlayer(
-                        entity.x, entity.y, entity.z, 50, 
+                        entity.x, entity.y, entity.z, 50,
                         p => config.fieldAABB.contains(p.position()) && !p.isSpectator() //在场地内并且不是旁观的(并且在boss50m内的)玩家
                     );   //最后一个参数为谓词,接收实体,返回false或true(即实体是否满足条件(实体是...)),以此来过滤实体,此处可用箭头函数校验  
                     //箭头函数如果不加花括号一般是直接起return作用,加花括号要返回必须加return (p => {return ...} 相当于 p => ...)
@@ -1738,9 +1738,9 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     
                     var playerPosArr = this.predictNextPosition(player,random.nextDouble(6));
                     var accelerationScale = 0.1 + extraAccelerationScale;
-                    for(var i = 0;i < 7;i ++){
+                    for (var i = 0; i < 7; i++) {
                         var fireball = level.createEntity("cataclysm:ignis_fireball");
-                        fireball.setPos(entity.position().add((new Vec3d(0,6,0))));
+                        fireball.setPos(entity.position().add((new Vec3d(0, 6, 0))));
                         var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
                         var slowDirection = direction.scale(accelerationScale); //scale 点乘
                         var power = "[" + single_Ignis.GlobalManager.vec3dToArray(slowDirection).toString() + "]";
@@ -1748,9 +1748,9 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                         level.addFreshEntity(fireball);
                     }
                 }
-            })   
+            })
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.Level} level
@@ -1759,16 +1759,16 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {boolean} [useRandomSpeed]
          * @returns {void}
          */
-        autoSummonIgnisFireball : function (server ,level ,difficulty ,useRandomWave ,useRandomSpeed) {
+        autoSummonIgnisFireball: function (server, level, difficulty, useRandomWave, useRandomSpeed) {
             if (useRandomWave == null) {
                 useRandomWave = false;
             }
             if (useRandomSpeed == null) {
                 useRandomSpeed = false;
             }
-            
+
             for (const [id, config] of fieldConfig) {
-                let isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+                let isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "isBossSummoned", FieldStatusFile);
                 if (!isBossSummoned) continue;
                 let currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
                 if (!(currentDifficulty == difficulty)) continue;
@@ -1787,7 +1787,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     if (minFireballWave < 1) {
                         minFireballWave = 1;
                     }
-                    finalFireballWave = random.nextInt(minFireballWave,maxFireballWave + 1)  //nextInt(3,5)就是[3,5)
+                    finalFireballWave = random.nextInt(minFireballWave, maxFireballWave + 1)  //nextInt(3,5)就是[3,5)
                 }
 
                 for (let wave = 0; wave < finalFireballWave; wave++) {
@@ -1803,7 +1803,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 }
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.LivingEntity} entity 
@@ -1816,11 +1816,11 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 var playerName = String(entity.username);
                 if (source.actual == null) return;
                 if (source.actual.persistentData.getInt("isBoss") == 0) return;
-                
+
                 var config = single_Ignis.getConfigManager.getConfigByID(source.actual.persistentData.getInt("ID"))
                 if (!debuffLock.has(playerName)) {
-                    var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
-                    var addDebuffFlag = random.nextInt(100) + 1 < difficultyParameter.get(difficulty).debuffProbability ? true : false ;
+                    var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "difficulty", FieldStatusFile);
+                    var addDebuffFlag = random.nextInt(100) + 1 < difficultyParameter.get(difficulty).debuffProbability ? true : false;
                     if (addDebuffFlag) {
                         var randomIndex1 = random.nextInt(5);
                         var randomIndex2 = random.nextInt(5);
@@ -1831,15 +1831,15 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                         if (difficulty == "hard") {
                             entity.addEffect(new MobEffectInstance(debuffType[randomIndex2].id,debuffType[randomIndex2].duration,debuffType[randomIndex2].lvl,false,false));
                         }
-                        debuffLock.set(playerName,true);
-                        server.scheduleInTicks(100,() => {
+                        debuffLock.set(playerName, true);
+                        server.scheduleInTicks(100, () => {
                             debuffLock.delete(playerName);
                         })
                     }
-                } 
+                }
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {number} WaitTime
          * @param {Internal.Level} level
@@ -1849,22 +1849,22 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {configDetails} config
          * @returns {void}
          */
-        generateSingleFlameStrike: function (level ,WaitTime ,Duration ,damage ,Radius ,config) {
-            var flameStrike = level.createEntity("cataclysm:flame_strike") 
+        generateSingleFlameStrike: function (level, WaitTime, Duration, damage, Radius, config) {
+            var flameStrike = level.createEntity("cataclysm:flame_strike")
             flameStrike.mergeNbt(`{WaitTime:${WaitTime},Duration:${Duration},damage:${damage}}`); //need confirm
             flameStrike.mergeNbt(`{Radius:${Radius}}`);
-            flameStrike.setPos(random.nextDouble(config.fieldAABB.minX,config.fieldAABB.maxX),config.fieldHeight + 1,random.nextDouble(config.fieldAABB.minZ,config.fieldAABB.maxZ))
+            flameStrike.setPos(random.nextDouble(config.fieldAABB.minX, config.fieldAABB.maxX), config.fieldHeight + 1, random.nextDouble(config.fieldAABB.minZ, config.fieldAABB.maxZ))
             var trySummonCount = 0
             while (level.getEntitiesWithin(flameStrike.boundingBox).filter(entity => entity.type == "cataclysm:flame_strike").size() != 0 && trySummonCount < 5) {
-                flameStrike.setPos(random.nextDouble(config.fieldAABB.minX,config.fieldAABB.maxX),config.fieldHeight + 1,random.nextDouble(config.fieldAABB.minZ,config.fieldAABB.maxZ))
-                if (airBlocks.has(String(flameStrike.block.offset(0,-1,0).id)) || !airBlocks.has(String(flameStrike.block.id)) ) {
-                    flameStrike.setPos(random.nextDouble(config.fieldAABB.minX,config.fieldAABB.maxX),config.fieldHeight + 1,random.nextDouble(config.fieldAABB.minZ,config.fieldAABB.maxZ))
+                flameStrike.setPos(random.nextDouble(config.fieldAABB.minX, config.fieldAABB.maxX), config.fieldHeight + 1, random.nextDouble(config.fieldAABB.minZ, config.fieldAABB.maxZ))
+                if (airBlocks.has(String(flameStrike.block.offset(0, -1, 0).id)) || !airBlocks.has(String(flameStrike.block.id))) {
+                    flameStrike.setPos(random.nextDouble(config.fieldAABB.minX, config.fieldAABB.maxX), config.fieldHeight + 1, random.nextDouble(config.fieldAABB.minZ, config.fieldAABB.maxZ))
                 }
-                trySummonCount ++;
+                trySummonCount++;
             }
             level.addFreshEntity(flameStrike);
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.Level} level
@@ -1873,29 +1873,29 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {string} difficulty
          * @returns {void} 
          */
-        summonRandomFlameStrike : function (level ,server ,isFinalTurn ,difficulty ,entity) {
+        summonRandomFlameStrike: function (level, server, isFinalTurn, difficulty, entity) {
             var foreachCount = 0;
             if (!isFinalTurn) {
-                for (const [id ,config] of fieldConfig) { //全局
-                    var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+                for (const [id, config] of fieldConfig) { //全局
+                    var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "isBossSummoned", FieldStatusFile);
                     if (!isBossSummoned) continue;
                     if (!(single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile) == difficulty)) continue;
                     
                     let currentConfig = config; //局部块(不能用var,会提升到全局(只是全局的重新赋值)),规避闭包陷阱(闭包捕获最终对象,如果循环结束后才捕获,那么将全部采用循环结束后的最终值) 
                     /**@type {string} */
-                    let currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+                    let currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "difficulty", FieldStatusFile);
                     /**@type {boolean} */
-                    let currentBossStatus = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile)
+                    let currentBossStatus = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "isBossSummoned", FieldStatusFile)
                     let currentDifficultyParam = difficultyParameter.get(currentDifficulty);
                     let adjustedDamage = Math.round(currentDifficultyParam.flameStrikeDamage / currentDifficultyParam.extraFireballOrMagicDamageScale);
-                    server.scheduleInTicks(5 * foreachCount ,() => {
+                    server.scheduleInTicks(5 * foreachCount, () => {
                         if (currentBossStatus) {
                             for (let i = 0; i < currentDifficultyParam.flameStrikeCount; i++) {
-                                this.generateSingleFlameStrike(level ,currentDifficultyParam.flameStrikeWaitTime ,currentDifficultyParam.flameStrikeDuration ,adjustedDamage ,currentDifficultyParam.flameStrikeRadius ,currentConfig);
+                                this.generateSingleFlameStrike(level, currentDifficultyParam.flameStrikeWaitTime, currentDifficultyParam.flameStrikeDuration, adjustedDamage, currentDifficultyParam.flameStrikeRadius, currentConfig);
                             }
                         }
                     })
-                    foreachCount ++;
+                    foreachCount++;
                 }
             } else if (isFinalTurn) {  //DeathEvent
                 if (entity == null) {
@@ -1906,32 +1906,32 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 var currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
                 if (currentDifficulty == "normal") {
                     let adjustedDamage = Math.round(15 / difficultyParameter.get(currentDifficulty).extraFireballOrMagicDamageScale);
-                    for (var i = 0; i < random.nextInt(5,9); i++) { //大于等于5,小于9
-                        this.generateSingleFlameStrike(level ,100 ,1800 ,adjustedDamage ,5.5 ,config);
+                    for (var i = 0; i < random.nextInt(5, 9); i++) { //大于等于5,小于9
+                        this.generateSingleFlameStrike(level, 100, 1800, adjustedDamage, 5.5, config);
                     }
                 } else if (currentDifficulty == "hard") {
                     let adjustedDamage = Math.round(35 / difficultyParameter.get(currentDifficulty).extraFireballOrMagicDamageScale);
-                    for (var i = 0; i < random.nextInt(6,9); i++) { //大于等于6,小于9
-                        this.generateSingleFlameStrike(level ,100 ,120000 ,adjustedDamage ,6.5 ,config);
+                    for (var i = 0; i < random.nextInt(6, 9); i++) { //大于等于6,小于9
+                        this.generateSingleFlameStrike(level, 100, 120000, adjustedDamage, 6.5, config);
                     }
                 } else if (currentDifficulty == "hell") {
                     let adjustedDamage = Math.round(35 / difficultyParameter.get(currentDifficulty).extraFireballOrMagicDamageScale);
-                    for (var i = 0; i < random.nextInt(7,9); i++) { //大于等于7,小于9
-                        this.generateSingleFlameStrike(level ,100 ,120000 ,adjustedDamage ,7 ,config);
+                    for (var i = 0; i < random.nextInt(7, 9); i++) { //大于等于7,小于9
+                        this.generateSingleFlameStrike(level, 100, 120000, adjustedDamage, 7, config);
                     }
                 }
                 //普通难度,生成5-8持续60秒的  damage 15 realdamage 7
                 //困难难度.生成5-8永久持续的,直到焰魔死亡 damage 40 realdamage 15
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.LivingEntity} entity     
          * @param {Internal.Level} level
          * @returns {void}
          */
-        bossBarTimerInit : function (server ,entity ,level) {
+        bossBarTimerInit: function (server, entity, level) {
             var bossID = entity.persistentData.getInt("ID");
             var config = single_Ignis.getConfigManager.getConfigByID(entity);
             if (config == null) {
@@ -1950,15 +1950,15 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 activeBossbarTimer.set(bossID ,HOLD_ON_TIME_IN_SECONDS);
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.LivingEntity} entity     
          * @param {Internal.Level} level - 可以传入外部定义level而无需使用LevelEvents
          * @returns {void}
          */
-        bossBarTimerCountDown : function (server ,level) {  
-            for (const [bossId ,remainingTime] of activeBossbarTimer) {
+        bossBarTimerCountDown: function (server, level) {
+            for (const [bossId, remainingTime] of activeBossbarTimer) {
                 let config = single_Ignis.getConfigManager.getConfigByID(bossId);
                 if (config == null) {
                     console.error(`配置项为空!`);
@@ -1978,7 +1978,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                         server.runCommandSilent(`/bossbar set minecraft:${bossId} value ${remainingTime}`);
                         server.runCommandSilent(`/bossbar set minecraft:${bossId} name [{"text":"请在","color":"yellow"},{"text":"${remainingTime}","color":"red"},{"text":"秒内杀死全部仆从怪物并等待结束","color":"yellow"}]`);
                     }
-                    
+
                     if (remainingTime < 20) {
                         if (remainingTime % 2 == 0) {
                             server.runCommandSilent(`/bossbar set minecraft:${bossId} color red`);
@@ -1986,7 +1986,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                             server.runCommandSilent(`/bossbar set minecraft:${bossId} color white`);
                         }
                     }
-                    activeBossbarTimer.set(bossId,remainingTime - 1);
+                    activeBossbarTimer.set(bossId, remainingTime - 1);
                 } else {
                     level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "cataclysm:ignis").forEach(ignis => {
                         var players = level.getEntitiesWithin(config.fieldAABB).filter(entity => entity.type == "minecraft:player");
@@ -2022,7 +2022,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 }
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server
          * @param {Internal.Vec3d} pos  
@@ -2032,7 +2032,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {string} playerName
          * @returns {void}
          */
-        summonSingleServant : function (server ,pos ,servant ,level ,isFinalTurn ,playerName) {
+        summonSingleServant: function (server, pos, servant, level, isFinalTurn, playerName) {
             /**@type {Internal.LivingEntity} */
             var newServant = level.createEntity(servant.entityType);
             newServant.setMaxHealth(servant.HP);
@@ -2045,19 +2045,19 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 newServant.mergeNbt(`{isBoss:1}`);
             }
             newServant.mergeNbt(`{PersistenceRequired:${servant.PersistenceRequired}}`);
-            newServant.setAttributeBaseValue("tacz:tacz.bullet_resistance",1 - servant.bulletDamageMultiplier);
+            newServant.setAttributeBaseValue("tacz:tacz.bullet_resistance", 1 - servant.bulletDamageMultiplier);
             newServant.setGlowing(true);
-            newServant.setAttributeBaseValue("minecraft:generic.follow_range",50);
+            newServant.setAttributeBaseValue("minecraft:generic.follow_range", 50);
             newServant.persistentData.merge(`{isServant:1}`)
             if (isFinalTurn) {
                 newServant.persistentData.merge(`{isFinalTurn:1}`);
             }
             level.addFreshEntity(newServant);
-            server.scheduleInTicks(2,() => {
+            server.scheduleInTicks(2, () => {
                 server.runCommandSilent(`/damage ${String(newServant.stringUuid)} 0.1 minecraft:generic by ${playerName}`)
             })
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.LivingEntity} entity     
@@ -2065,15 +2065,15 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {boolean} isFinalTurn
          * @returns {void}
          */
-        summonServantMonster : function (server ,level ,entity ,isFinalTurn) {
+        summonServantMonster: function (server, level, entity, isFinalTurn) {
             var config = single_Ignis.getConfigManager.getConfigByID(entity);
             if (config == null) {
                 console.error(`配置项为空!`);
                 return;
             }
-            var currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"difficulty",FieldStatusFile);
+            var currentDifficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "difficulty", FieldStatusFile);
             var player = level.getNearestPlayer(
-                entity.x, entity.y, entity.z, 60, 
+                entity.x, entity.y, entity.z, 60,
                 p => config.fieldAABB.contains(p.position()) && !p.isSpectator() //在场地内并且不是旁观的(并且在boss50m内的)玩家
             );
             var playerName = String(player.username);
@@ -2082,7 +2082,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 var servantRevenant = ServantMonsterConfig.get(currentDifficulty).cataclysm_ignited_revenant;  
                 for (var i = 0; i < servantRevenant.summonCount ; i++) {
                     /**@type {Internal.LivingEntity} */
-                    this.summonSingleServant(server,config.summonPos,servantRevenant,level,false,playerName);
+                    this.summonSingleServant(server, config.summonPos, servantRevenant, level, false, playerName);
                 }
             } else {
                 if (currentDifficulty == "easy") return;
@@ -2111,7 +2111,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 }
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @param {Internal.LivingEntity} entity     
@@ -2119,11 +2119,11 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {boolean} isFinalTurn
          * @returns {void}
          */
-        execFinalTurn : function (entity ,server ,level) {
+        execFinalTurn: function (entity, server, level) {
             entity.setHealth(1);
             entity.setAttributeBaseValue("minecraft:generic.movement_speed",0.33);
             var entityUUID = String(entity.stringUuid);
-            isBossFinalTurn.set(entityUUID,true);
+            isBossFinalTurn.set(entityUUID, true);
             var fieldId = entity.persistentData.getInt("ID");
             var difficulty = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(fieldId,"difficulty",FieldStatusFile);
             if (difficulty != "easy") {
@@ -2140,7 +2140,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {boolean} isSettling
          * @returns {boolean} 
          */
-        tellPlayerChallengeCount : function (player,isSettling) {
+        tellPlayerChallengeCount: function (player, isSettling) {
             /**@type {Map<playerName,[association_playerName]>} */
             var ExceptionIPs = JsonIO.read(ExceptionIPFile);
             var allFightCount = JsonIO.readJson(BossFightFile).getAsJsonObject();
@@ -2173,7 +2173,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     totalSFC += detailSFC;
                 }
 
-                /**@type {number} */ 
+                /**@type {number} */
                 var totalDetailSFC = totalSFC + selfDetailSFC
                 if (totalDetailSFC > maxSingleCfg) {
                     player.tell(Component.red(`今日你(与你的关联账号)已挑战成功\u00a7e${totalDetailSFC}\u00a7c次,奖励次数已用尽`));
@@ -2192,107 +2192,107 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 }
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server 
          * @returns {void} 
          */
-        preventHangUp : function (server) {
+        preventHangUp: function (server) {
             var players = server.players;
-            for(const player of players) {
+            for (const player of players) {
                 var config = single_Ignis.getConfigManager.getConfigByPlayerTags(player);
                 if (config == null) continue;
                 var UUid = String(player.stringUuid);
                 var playername = String(player.username);
                 var Obj = server.scoreboard.getObjective(config.tagOrFieldObjName);
-                if (player.tags.contains(config.tagOrFieldObjName) && !server.scoreboard.hasPlayerScore(playername,Obj)) {
+                if (player.tags.contains(config.tagOrFieldObjName) && !server.scoreboard.hasPlayerScore(playername, Obj)) {
                     if (!summonOutTime.has(UUid)) {
                         player.tell(`\u00a7e进入场地后请尽快召唤!`);
-                        summonOutTime.set(UUid,1);
+                        summonOutTime.set(UUid, 1);
                     } else if (summonOutTime.has(UUid)) {
-                        player.teleportTo(config.tpBackPos.x(),config.tpBackPos.y(),config.tpBackPos.z());
+                        player.teleportTo(config.tpBackPos.x(), config.tpBackPos.y(), config.tpBackPos.z());
                         player.removeTag(config.tagOrFieldObjName);
                         player.tell(`\u00a7c因长时间未召唤被遣返`);
                         summonOutTime.delete(UUid);
                     }
                 }
-            }   
+            }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @returns {void}
          */
-        tryResetLootAndIpList : function () { 
+        tryResetLootAndIpList: function () {
             var tryPullCacheCount = 0;
             while (dateCache == -1) {
                 console.warn(`无效的操作:日期为-1,即将同步文件中的最后更新时间...`);
                 var bossFightFile = JsonIO.readJson(BossFightFile).getAsJsonObject();
                 dateCache = bossFightFile.get("lastUpdateDay").asInt;
-                tryPullCacheCount ++;
+                tryPullCacheCount++;
                 if (tryPullCacheCount >= 5) {
                     console.error(`同步时间失败`);
                     return;
                 }
             }
-            
+
             if (d8 != dateCache && dateCache != -1) {
-                JsonIO.write(BossFightFile,BossFightFileInit);  //重置boss每日记录
+                JsonIO.write(BossFightFile, BossFightFileInit);  //重置boss每日记录
                 var newBossFightFile = JsonIO.readJson(BossFightFile).getAsJsonObject();
-                newBossFightFile.add("lastUpdateDay",d8);
-                JsonIO.write(BossFightFile,newBossFightFile);
-                JsonIO.write(ExceptionIPFile,excIPInit);
+                newBossFightFile.add("lastUpdateDay", d8);
+                JsonIO.write(BossFightFile, newBossFightFile);
+                JsonIO.write(ExceptionIPFile, excIPInit);
                 dateCache = d8;
                 console.log(`文件已重置完成`);
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server
          * @returns {void} -rebuild
          */
-        removeBannedEntity : function (server) {
+        removeBannedEntity: function (server) {
             blackListEntity.forEach(entityType => {
                 server.entities.filter(entity => String(entity.type) == entityType).forEach(entity => entity.discard());
             })//定时删除黑名单实体
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server
          * @returns {void} -rebuild
          */
-        removeBannedEffect : function (server) {
+        removeBannedEffect: function (server) {
             bannedEffects.forEach(effectType => {
                 server.runCommandSilent(`/effect clear @a ${effectType}`);
             }) //定时清除黑名单效果
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server
          * @param {Internal.Player} player
          * @returns {void}
          */
-        removeBannedItem : function (server ,player) {  //PlayerEvents.tick()用
+        removeBannedItem: function (server, player) {  //PlayerEvents.tick()用
             var config = single_Ignis.getConfigManager.getConfigByPlayerTags(player);
             if (config == null) {
                 return;
             }
             var playername = String(player.username)
             var Obj = server.scoreboard.getObjective(config.tagOrFieldObjName);
-            if (player.tags.contains(config.tagOrFieldObjName) && server.scoreboard.hasPlayerScore(playername,Obj)) {
+            if (player.tags.contains(config.tagOrFieldObjName) && server.scoreboard.hasPlayerScore(playername, Obj)) {
                 bannedItem.forEach(itemType => {
                     player.inventory.clear(itemType);
                 })
             }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.MinecraftServer} server
          * @param {Internal.Player} player
          * @returns {void}
          */
-        IpCheck : function (server ,player) {
+        IpCheck: function (server, player) {
             const playerName = String(player.username);
-    
+
             // 延迟1秒执行比对，确保数据已更新
             server.scheduleInTicks(100, () => {
                 // 1. 安全读取数据
@@ -2345,14 +2345,14 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 }
 
                 const currentPlayerIps = usersMap.get(playerName);  //对于一个Json文件,如果被转为Map,那么键为键,值如果为Array则转为List/为对象则转为Map,为其他基本类型则维持不变
-                
+
                 if (!currentPlayerIps) {
                     console.error(`[IP检测] 玩家 ${playerName} 无IP记录`);
                     return;
                 }
-                
+
                 //检测是否为数组，不是则转换
-                
+
                 function convertToJsArray(javaCollection) {
                     if (javaCollection && typeof javaCollection.toArray === 'function') {
                         let javaArray = javaCollection.toArray();
@@ -2363,53 +2363,53 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 }
 
                 const safeCurrentIps = convertToJsArray(currentPlayerIps);
-                
+
                 const currentIpSet = new Set(safeCurrentIps); //使用Set提高查找效率(将已有的IPArr元素放进Set)
-                
+
                 let duplicateReports = new Map(); //使用Map存储报告，按IP索引
-                
+
                 //遍历usersMap
-                
+
                 var allDuplicatePlayers = new Set();
-                
+
                 usersMap.forEach(
                     /**
                     * @param {string} storedName
                     * @param {[]} IpArr  
                     */
                     (storedName, IpArr) => {
-                    if (storedName == playerName) return;
-                    const AllIps = convertToJsArray(IpArr);
-                    
-                    //遍历除了自己以外的ipArr,并尝试匹配IP
-                    AllIps.forEach(ip => {
-                        if (currentIpSet.has(ip)) {
-                            if (!duplicateReports.has(ip)) {
-                                duplicateReports.set(ip, { //找到了一个重复IP,且没有被记录时,记录该IP
-                                    ip: ip,
-                                    players: []
-                                });
+                        if (storedName == playerName) return;
+                        const AllIps = convertToJsArray(IpArr);
+
+                        //遍历除了自己以外的ipArr,并尝试匹配IP
+                        AllIps.forEach(ip => {
+                            if (currentIpSet.has(ip)) {
+                                if (!duplicateReports.has(ip)) {
+                                    duplicateReports.set(ip, { //找到了一个重复IP,且没有被记录时,记录该IP
+                                        ip: ip,
+                                        players: []
+                                    });
+                                }
+
+                                const report = duplicateReports.get(ip);
+                                if (!report.players.includes(storedName)) {  //将对应玩家元素推入该IP报告列表
+                                    report.players.push(storedName);
+                                    allDuplicatePlayers.add(storedName);
+                                }
                             }
-                            
-                            const report = duplicateReports.get(ip);
-                            if (!report.players.includes(storedName)) {  //将对应玩家元素推入该IP报告列表
-                                report.players.push(storedName);
-                                allDuplicatePlayers.add(storedName);
-                            }
-                        }
+                        });
                     });
-                });
-                
+
                 //处理报告结果
                 if (duplicateReports.size > 0) {
                     let reportMessage = `[IP警告] 玩家 ${playerName} 的IP有重复:\n`;
-                    
+
                     duplicateReports.forEach(report => {
                         reportMessage += `- IP ${report.ip} 与以下玩家重复: ${report.players.join(', ')}\n`;
                     });
-                    
+
                     console.error(reportMessage);
-                    
+
                     // 发送警告给所有在线管理员
                     server.getPlayers().forEach(admin => {
                         if (admin.hasPermissions(4)) {
@@ -2418,14 +2418,14 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     });
 
                     if (JsonIO.readJson(ExceptionIPFile).isJsonNull()) {
-                        JsonIO.write(ExceptionIPFile,excIPInit);
+                        JsonIO.write(ExceptionIPFile, excIPInit);
                     }
                     var ExceptionIPs = JsonIO.readJson(ExceptionIPFile).asJsonObject;
-                    
+
                     var ExceptionIPArray = Array.from(allDuplicatePlayers);
-                    
-                    ExceptionIPs.add(playerName,ExceptionIPArray);  //建立IP重复文件
-                    JsonIO.write(ExceptionIPFile,ExceptionIPs);
+
+                    ExceptionIPs.add(playerName, ExceptionIPArray);  //建立IP重复文件
+                    JsonIO.write(ExceptionIPFile, ExceptionIPs);
                 }
             })
         },
@@ -2435,8 +2435,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {string} paramName - 你想获取的具体状态值(difficulty|isBossSummoned)
          * @returns {string | boolean | null}
          */
-        
-        getFieldStatusByPlayerFromCache : function (player ,paramName) { 
+
+        getFieldStatusByPlayerFromCache: function (player, paramName) {
             var playerName = String(player.username);
             if (playerToFieldReflection.get(playerName) == null) {
                 console.warn(`无效的操作:该玩家未与场地建立链接,正在尝试建立链接...`);
@@ -2446,9 +2446,9 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                     return null;
                 }
                 var fieldID = config.fieldOrBossId;
-                playerToFieldReflection.set(playerName,fieldID.toString());
+                playerToFieldReflection.set(playerName, fieldID.toString());
             }
-            
+
             var strFieldIDInCache = playerToFieldReflection.get(playerName);
 
             var detailedStatus = FieldStatusCache.get(strFieldIDInCache);
@@ -2466,7 +2466,7 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 default:
                     console.error(`错误的参数名称`);
                     return null;
-            }        
+            }
         },
         //---------------------------------------------------------------------------------------
         /**
@@ -2475,14 +2475,14 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {Internal.Path} jsonPath
          * @returns {string | boolean | null}
          */
-        
-        getFieldStatusByIDFromCache : function (fieldId ,paramName ,jsonPath) { 
+
+        getFieldStatusByIDFromCache: function (fieldId, paramName, jsonPath) {
             var jsonedFieldId = fieldId.toString();
             var tryPullCacheCount = 0;
             while (FieldStatusCache.size == 0) {
                 console.warn(`无效的操作:尝试从空缓存获取内容.即将重新拉取文件内容到缓存`);
                 FieldStatusCache = JsonIO.read(jsonPath);  //不是严格意义的map,但是get()和set()仍然有效
-                tryPullCacheCount ++;
+                tryPullCacheCount++;
                 if (tryPullCacheCount >= 5) {
                     console.error(`拉取缓存失败`);
                     return null;
@@ -2504,9 +2504,9 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 default:
                     console.error(`错误的参数名称`);
                     return null;
-            }        
+            }
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.Path} jsonPath
          * @param {number} fieldId
@@ -2514,11 +2514,11 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
          * @param {string | boolean} content -具体的更改值
          * @returns {void}
          */
-        updateFieldStatusToJson : function (jsonPath ,fieldId ,paramName ,content) { 
+        updateFieldStatusToJson: function (jsonPath, fieldId, paramName, content) {
             var jsonedFieldId = fieldId.toString();
             var fieldStatus = JsonIO.readJson(jsonPath).asJsonObject;
             var detailedStatus = fieldStatus.get(jsonedFieldId).asJsonObject;
-            
+
             switch (paramName) {
                 case "difficulty":
                     if (typeof content != "string") {
@@ -2535,23 +2535,23 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
                 default:
                     console.error(`错误的参数名称`);
                     return;
-            }        
-            detailedStatus.add(paramName,content);
-            JsonIO.write(jsonPath,fieldStatus);
+            }
+            detailedStatus.add(paramName, content);
+            JsonIO.write(jsonPath, fieldStatus);
             FieldStatusCache = JsonIO.read(jsonPath);
         },
-    //---------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------
         /**
          * @param {Internal.Player} player
          * @param {Internal.ItemStack} item,
          * @returns {boolean} - 返回是否需要取消事件
          */
-        preventDropItemWrongly : function (player ,item) {
+        preventDropItemWrongly: function (player, item) {
             var config = single_Ignis.getConfigManager.getConfigByPlayerTags(player);
             if (config == null) {
                 return false;
             }
-            var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId,"isBossSummoned",FieldStatusFile);
+            var isBossSummoned = single_Ignis.GlobalManager.getFieldStatusByIDFromCache(config.fieldOrBossId, "isBossSummoned", FieldStatusFile);
             if (isBossSummoned) {
                 return true;
             } else {
@@ -2619,8 +2619,8 @@ const single_Ignis = {  //使用Object封装方法与某些特定属性(类似�
 
 //Main function below here ========================
 BlockEvents.rightClicked("minecraft:oak_button", event => {
-    const {hand ,player ,block ,server ,level} = event;
-    const {FieldManager,GlobalManager} = single_Ignis;
+    const { hand, player, block, server, level } = event;
+    const { FieldManager, GlobalManager } = single_Ignis;
     if (hand != "MAIN_HAND") return;
     if (rightClickCooldown <= 0) {
         var hasBannedItem = FieldManager.scanBannedItem(player);
@@ -2634,17 +2634,17 @@ BlockEvents.rightClicked("minecraft:oak_button", event => {
 })
 
 BlockEvents.rightClicked("lootr:lootr_inventory", event => {
-    const {player ,block ,server} = event;
-    const {FieldManager} = single_Ignis;
-    FieldManager.preventRewardTheft(player,block.pos,server,event);
+    const { player, block, server } = event;
+    const { FieldManager } = single_Ignis;
+    FieldManager.preventRewardTheft(player, block.pos, server, event);
 })
 
 BlockEvents.leftClicked(event => {
-    const {block ,player ,level ,server} = event;
-    const {FieldManager} = single_Ignis;
+    const { block, player, level, server } = event;
+    const { FieldManager } = single_Ignis;
     if (block.id == "alexscaves:hazmat_warning_block") {
-        FieldManager.preSummon(server,level,player,block,block.pos);
-        FieldManager.ExecWhileSummoning(player,block.pos,level,server);
+        FieldManager.preSummon(server, level, player, block, block.pos);
+        FieldManager.ExecWhileSummoning(player, block.pos, level, server);
     }
 })
 
@@ -2658,7 +2658,7 @@ EntityEvents.hurt(event => {
         }   //玩家boss开启时请注释掉这部分,或者以后需要重写玩家boss
         CustomEffectionManager.execCustomEffectionLevelWhenHurt(entity,server,source);
     } else if (entity.type == "cataclysm:ignis") {
-        BattleManager.execIgnisStageChange(entity,server,level);
+        BattleManager.execIgnisStageChange(entity, server, level);
         BattleManager.execIgnisGetAttacked(entity);
         if (source.actual == null || !source.actual.isPlayer()) {
             event.cancel();
@@ -2676,56 +2676,56 @@ EntityEvents.hurt(event => {
 
 /** @param {Internal.LivingHurtEvent} event */
 global.LivingHurtHandler = event => {  //在受伤之中的最后部分执行
-    const {entity ,amount ,source} = event;
-    const {BattleManager} = single_Ignis;
-    BattleManager.execDamageBoost(entity,source,amount,event);
+    const { entity, amount, source } = event;
+    const { BattleManager } = single_Ignis;
+    BattleManager.execDamageBoost(entity, source, amount, event);
 }
 
 EntityEvents.death(event => {
-    let {entity ,server ,level} = event;
-    const {FieldManager ,BattleManager} = single_Ignis;
+    let { entity, server, level } = event;
+    const { FieldManager, BattleManager } = single_Ignis;
     if (entity.isPlayer() && (entity.persistentData.get("isBoss") == null)) {
-        server.scheduleInTicks(2 ,() => {
+        server.scheduleInTicks(2, () => {
             if (entity.isDeadOrDying()) {
-                FieldManager.execAfterPlayerDead(entity,server,level);
+                FieldManager.execAfterPlayerDead(entity, server, level);
             }
         })
     }
     if (entity.type == "cataclysm:ignis") {
         var entityUUID = String(entity.stringUuid)
         if (!isBossFinalTurn.has(entityUUID)) {
-            BattleManager.execFinalTurn(entity ,server ,level);
+            BattleManager.execFinalTurn(entity, server, level);
             event.cancel();
         } else {
-            FieldManager.execAfterWinning(entity,level,server);
-            FieldManager.execAfterBossDied(server,entity,level);
+            FieldManager.execAfterWinning(entity, level, server);
+            FieldManager.execAfterBossDied(server, entity, level);
         }
     }
 })
 
 PlayerEvents.loggedIn(event => {
-    const {player ,server} = event;
-    const {ConnectionManager ,GlobalManager} = single_Ignis;
-    ConnectionManager.execAfterPlayerLogin(player,server);
+    const { player, server } = event;
+    const { ConnectionManager, GlobalManager } = single_Ignis;
+    ConnectionManager.execAfterPlayerLogin(player, server);
     GlobalManager.tryResetLootAndIpList();
 })
 
 PlayerEvents.loggedOut(event => {
-    const {player ,server} = event;
-    const {ConnectionManager} = single_Ignis;
-    ConnectionManager.execAfterPlayerLogout(player,server);
+    const { player, server } = event;
+    const { ConnectionManager } = single_Ignis;
+    ConnectionManager.execAfterPlayerLogout(player, server);
 })
 
 PlayerEvents.respawned(event => {
-    const {player} = event;
+    const { player } = event;
     player.setInvulnerable(true); //重生无敌
 })
 
 PlayerEvents.tick(event => {
-    const {player ,server} = event;
-    const {GlobalManager} = single_Ignis;
+    const { player, server } = event;
+    const { GlobalManager } = single_Ignis;
     if (server.tickCount % 15 == 0) {
-        GlobalManager.removeBannedItem(server,player);
+        GlobalManager.removeBannedItem(server, player);
     }
 })
 
@@ -2736,7 +2736,7 @@ ServerEvents.tick(event => {
         rightClickCooldown -= 1;
     }
     if (server.tickCount % clearIllegalBossCooldown == 0) {
-        FieldManager.tryDiscardBossByGlobal(server,overworld);
+        FieldManager.tryDiscardBossByGlobal(server, overworld);
     }
     if (server.tickCount % 1200 == 0) {
         GlobalManager.preventHangUp(server);
@@ -2745,7 +2745,7 @@ ServerEvents.tick(event => {
         //server.tell(h8 + ":" + min8 + ":" + s8)  //debug
     }
     if (server.tickCount % 300 == 0) {
-        FieldManager.checkAndHandlePlayerCountViolation(server,overworld);
+        FieldManager.checkAndHandlePlayerCountViolation(server, overworld);
     }
     if (server.tickCount % 60 == 0) {
         GlobalManager.removeBannedEntity(server);
@@ -2761,11 +2761,11 @@ ServerEvents.tick(event => {
     }
 
     if (server.tickCount % difficultyParameter.get("easy").fireballCooldown == 0) {
-        BattleManager.autoSummonIgnisFireball(server,overworld,"easy");
+        BattleManager.autoSummonIgnisFireball(server, overworld, "easy");
     }
 
     if (server.tickCount % difficultyParameter.get("normal").fireballCooldown == 0) {
-        BattleManager.autoSummonIgnisFireball(server,overworld,"normal");
+        BattleManager.autoSummonIgnisFireball(server, overworld, "normal");
     }
 
     if (server.tickCount % difficultyParameter.get("hard").fireballCooldown == 0) {
@@ -2777,11 +2777,11 @@ ServerEvents.tick(event => {
     }
 
     if (server.tickCount % difficultyParameter.get("easy").flameSummonCooldown == 0) {
-        BattleManager.summonRandomFlameStrike(overworld,server,false,"easy");
+        BattleManager.summonRandomFlameStrike(overworld, server, false, "easy");
     }
 
     if (server.tickCount % difficultyParameter.get("normal").flameSummonCooldown == 0) {
-        BattleManager.summonRandomFlameStrike(overworld,server,false,"normal");
+        BattleManager.summonRandomFlameStrike(overworld, server, false, "normal");
     }
 
     if (server.tickCount % difficultyParameter.get("hard").flameSummonCooldown == 0) {
@@ -2794,17 +2794,17 @@ ServerEvents.tick(event => {
 })
 
 ServerEvents.entityLootTables(event => {
-    event.addEntity("cataclysm:ignis",loot => {
+    event.addEntity("cataclysm:ignis", loot => {
         loot.addPool(pool => {
             pool.addItem("minecraft:air");
         })
-    }) 
-})  
+    })
+})
 
 ItemEvents.dropped(event => {
-    const {entity ,item ,itemEntity} = event;
-    const {GlobalManager} = single_Ignis;
-    if (GlobalManager.preventDropItemWrongly(entity,item)) {
+    const { entity, item, itemEntity } = event;
+    const { GlobalManager } = single_Ignis;
+    if (GlobalManager.preventDropItemWrongly(entity, item)) {
         entity.tell(`您已进入战斗状态,如需丢弃物品请打开物品栏丢弃(防止误丢)`);
         var itemstack = item;
         itemEntity.discard();
@@ -2818,10 +2818,10 @@ ItemEvents.dropped(event => {
 })
 
 ServerEvents.commandRegistry(event => {
-    const {commands,arguments} = event;
+    const { commands, arguements } = event;
     event.register(commands.literal("Backintofield")
-    .requires(src => src.hasPermission(0))
-        .executes(context=>{
+        .requires(src => src.hasPermission(0))
+        .executes(context => {
             if (context.source.playerOrException == null) {
                 context.source.sendFailure(`该指令不能由后台执行`);
                 return 0;
@@ -2831,56 +2831,56 @@ ServerEvents.commandRegistry(event => {
     )
 })
 
-ServerEvents.command("Backintofield",event => {
-    const {parseResults} = event;
-    const {source} = parseResults.context;
-    const {FieldManager} = single_Ignis;
+ServerEvents.command("Backintofield", event => {
+    const { parseResults } = event;
+    const { source } = parseResults.context;
+    const { FieldManager } = single_Ignis;
     if (source.isPlayer()) {
         FieldManager.tryTpBattlePlayerBackToField(source);
     }
 })
 
 ServerEvents.chestLootTables(event => {
-    event.addChest("challenge:easyreward",loot => {
+    event.addChest("challenge:easyreward", loot => {
         loot.addPool(money => {
-            money.addItem("numismatics:bevel",100).count({min:1,max:1});
-            money.setUniformRolls(1,1);
+            money.addItem("numismatics:bevel", 100).count({ min: 1, max: 1 });
+            money.setUniformRolls(1, 1);
         })
     })
-    event.addChest("challenge:normalreward",loot => {
+    event.addChest("challenge:normalreward", loot => {
         loot.addPool(money => {
-            money.addItem("numismatics:bevel",100).count({min:1,max:1});
-            money.setUniformRolls(1,1);
+            money.addItem("numismatics:bevel", 100).count({ min: 1, max: 1 });
+            money.setUniformRolls(1, 1);
         })
         loot.addPool(haticon => {
-            haticon.addItem("simplehats:haticon",100).count({min:1,max:1});
-            haticon.setUniformRolls(1,1);
+            haticon.addItem("simplehats:haticon", 100).count({ min: 1, max: 1 });
+            haticon.setUniformRolls(1, 1);
         })
         loot.addPool(hat => {
-            hat.addItem("simplehats:hatbag_festive",100);
-            hat.addItem("simplehats:hatbag_halloween",100);
-            hat.addItem("simplehats:hatbag_summer",100);
-            hat.addItem("simplehats:hatbag_easter",100);
-            hat.addItem("simplehats:hatbag_epic",100);
-            hat.addItem("simplehats:hatbag_rare",100);
-            hat.addItem("simplehats:hatbag_uncommon",100);
-            hat.setUniformRolls(1,1);
+            hat.addItem("simplehats:hatbag_festive", 100);
+            hat.addItem("simplehats:hatbag_halloween", 100);
+            hat.addItem("simplehats:hatbag_summer", 100);
+            hat.addItem("simplehats:hatbag_easter", 100);
+            hat.addItem("simplehats:hatbag_epic", 100);
+            hat.addItem("simplehats:hatbag_rare", 100);
+            hat.addItem("simplehats:hatbag_uncommon", 100);
+            hat.setUniformRolls(1, 1);
         })
     })
-    event.addChest("challenge:hardreward",loot => {
+    event.addChest("challenge:hardreward", loot => {
         loot.addPool(haticon => {
-            haticon.addItem("simplehats:haticon",100).count({min:1,max:1});
-            haticon.setUniformRolls(1,1);
+            haticon.addItem("simplehats:haticon", 100).count({ min: 1, max: 1 });
+            haticon.setUniformRolls(1, 1);
         })
         loot.addPool(hat => {
-            hat.addItem("simplehats:hatbag_festive",100);
-            hat.addItem("simplehats:hatbag_halloween",100);
-            hat.addItem("simplehats:hatbag_summer",100);
-            hat.addItem("simplehats:hatbag_easter",100);
-            hat.addItem("simplehats:hatbag_epic",100);
-            hat.addItem("simplehats:hatbag_rare",100);
-            hat.addItem("simplehats:hatbag_uncommon",100);
-            hat.setUniformRolls(2,2);
+            hat.addItem("simplehats:hatbag_festive", 100);
+            hat.addItem("simplehats:hatbag_halloween", 100);
+            hat.addItem("simplehats:hatbag_summer", 100);
+            hat.addItem("simplehats:hatbag_easter", 100);
+            hat.addItem("simplehats:hatbag_epic", 100);
+            hat.addItem("simplehats:hatbag_rare", 100);
+            hat.addItem("simplehats:hatbag_uncommon", 100);
+            hat.setUniformRolls(2, 2);
         })
     })
 })
@@ -2984,308 +2984,308 @@ ItemEvents.firstRightClicked(event => {
                  * @param {number} delta
                  * @returns {Vec3d[]}
                  */
-                /*if (nearPlayer == null) {
-                    player.tell("未找到玩家,无法召唤火球");
-                    return;
-                }
-                var predictNextPosition = function (p,delta) {
-                    var pos0 = p.position();
-                    var pos1 = p.position().add((new Vec3d(0,delta,0)));
-                    var pos2 = p.position().add((new Vec3d(0,-delta,0)));
-                    var pos3 = p.position().add((new Vec3d(-delta,0,-delta)));
-                    var pos4 = p.position().add((new Vec3d(delta,0,delta)));
-                    var pos5 = p.position().add((new Vec3d(delta,0,-delta)));
-                    var pos6 = p.position().add((new Vec3d(-delta,0,delta)));
-                    var posArr = [pos0,pos1,pos2,pos3,pos4,pos5,pos6];
-                    return posArr;
-                }
-                /**
-                 * @param {Vec3d} vec3d 
-                 * @returns {[]}
-                 */
-                /*var vec3dToArray = function (vec3d) {
-                    var x = vec3d.x();
-                    var y = vec3d.y();
-                    var z = vec3d.z();
-                    return [x,y,z];
-                }
-                var playerPosArr = predictNextPosition(nearPlayer,random.nextDouble(6));
-                for(var i = 0;i < 7;i ++){
-                    var fireball = level.createEntity("cataclysm:ignis_fireball");
-                    fireball.setPos(player.position().add((new Vec3d(0,6,0))));
-                    var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
-                    var slowDirection = direction.scale(accelerationScale); //scale 点乘
-                    var power = "[" + vec3dToArray(slowDirection).toString() + "]";
-                    fireball.mergeNbt(`{timer:-100,power:${power}}`)
-                    level.addFreshEntity(fireball);
-                }
-                server.scheduleInTicks(10,() => {
-                    let playerPosArr = predictNextPosition(nearPlayer,random.nextDouble(6));
-                    for(var i = 0;i < 7;i ++){
-                        var fireball = level.createEntity("cataclysm:ignis_fireball");
-                        fireball.setPos(player.position().add((new Vec3d(0,6,0))));
-                        var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
-                        var slowDirection = direction.scale(accelerationScale); //scale 点乘
-                        var power = "[" + vec3dToArray(slowDirection).toString() + "]";
-                        fireball.mergeNbt(`{timer:-100,power:${power}}`)
-                        level.addFreshEntity(fireball);
-                    }
-                })
-            }
-        }
-        if (item.id == "minecraft:purple_dye") {
-            item.setHoverName(`瞬间移动`);
-            if (hit != null) {
-                player.teleportTo(hit.x(),hit.y(),hit.z());
-            } else {
-                if (player.pitch < 0) {
-                    player.teleportTo(player.x,player.y + 10,player.z);
-                } else {
-                    player.teleportTo(player.x,player.y - 5,player.z);
-                }
-            }
-        }   
-        if (item.id == "minecraft:orange_dye") {
-            item.setHoverName(`召唤烈焰阵,烈焰阵半径${radius},等待时间${radius * 5 - 10}`);
-            if (player.isShiftKeyDown()) {
-                radius += 0.2;
-                item.setHoverName(`召唤烈焰阵,烈焰阵半径${radius},等待时间${radius * 5 - 10}`);
-                return;
-            }
-            var flameStrike = level.createEntity("cataclysm:flame_strike") ;
-            flameStrike.mergeNbt(`{WaitTime:${radius * 5 - 10},Duration:100,damage:20}`); //need confirm
-            flameStrike.mergeNbt(`{Radius:${radius}}`);
-            if (hit != null) {
-                flameStrike.setPos(hit.x(),hit.y(),hit.z());
-            } else {
-                flameStrike.setPos(player.x,player.y,player.z);
-            }
-            level.addFreshEntity(flameStrike);
-        }
-        if (item.id == "minecraft:gray_dye") {
-            item.setHoverName(`效果无效(自我)`);
-            server.runCommandSilent(`/effect clear ${String(player.username)}`)
-        }
-        if (item.id == "minecraft:red_dye") {
-            item.setHoverName(`召唤追踪烈焰阵`);
-            var flameStrike = level.createEntity("cataclysm:flame_strike") ;
-            flameStrike.mergeNbt(`{WaitTime:0,Duration:0,damage:20}`); //need confirm
-            flameStrike.mergeNbt(`{Radius:5}`);
-            flameStrike.persistentData.merge(`{Tracking:1}`)
-            hasTrackingStrike = true;
-            if (hit != null) {
-                flameStrike.setPos(hit.x(),hit.y(),hit.z());
-            } else {
-                flameStrike.setPos(player.x,player.y,player.z);
-            }
-            level.addFreshEntity(flameStrike);
-        }
+/*if (nearPlayer == null) {
+    player.tell("未找到玩家,无法召唤火球");
+    return;
+}
+var predictNextPosition = function (p,delta) {
+    var pos0 = p.position();
+    var pos1 = p.position().add((new Vec3d(0,delta,0)));
+    var pos2 = p.position().add((new Vec3d(0,-delta,0)));
+    var pos3 = p.position().add((new Vec3d(-delta,0,-delta)));
+    var pos4 = p.position().add((new Vec3d(delta,0,delta)));
+    var pos5 = p.position().add((new Vec3d(delta,0,-delta)));
+    var pos6 = p.position().add((new Vec3d(-delta,0,delta)));
+    var posArr = [pos0,pos1,pos2,pos3,pos4,pos5,pos6];
+    return posArr;
+}
+/**
+ * @param {Vec3d} vec3d 
+ * @returns {[]}
+ */
+/*var vec3dToArray = function (vec3d) {
+    var x = vec3d.x();
+    var y = vec3d.y();
+    var z = vec3d.z();
+    return [x,y,z];
+}
+var playerPosArr = predictNextPosition(nearPlayer,random.nextDouble(6));
+for(var i = 0;i < 7;i ++){
+    var fireball = level.createEntity("cataclysm:ignis_fireball");
+    fireball.setPos(player.position().add((new Vec3d(0,6,0))));
+    var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
+    var slowDirection = direction.scale(accelerationScale); //scale 点乘
+    var power = "[" + vec3dToArray(slowDirection).toString() + "]";
+    fireball.mergeNbt(`{timer:-100,power:${power}}`)
+    level.addFreshEntity(fireball);
+}
+server.scheduleInTicks(10,() => {
+    let playerPosArr = predictNextPosition(nearPlayer,random.nextDouble(6));
+    for(var i = 0;i < 7;i ++){
+        var fireball = level.createEntity("cataclysm:ignis_fireball");
+        fireball.setPos(player.position().add((new Vec3d(0,6,0))));
+        var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
+        var slowDirection = direction.scale(accelerationScale); //scale 点乘
+        var power = "[" + vec3dToArray(slowDirection).toString() + "]";
+        fireball.mergeNbt(`{timer:-100,power:${power}}`)
+        level.addFreshEntity(fireball);
     }
+})
+}
+}
+if (item.id == "minecraft:purple_dye") {
+item.setHoverName(`瞬间移动`);
+if (hit != null) {
+player.teleportTo(hit.x(),hit.y(),hit.z());
+} else {
+if (player.pitch < 0) {
+    player.teleportTo(player.x,player.y + 10,player.z);
+} else {
+    player.teleportTo(player.x,player.y - 5,player.z);
+}
+}
+}   
+if (item.id == "minecraft:orange_dye") {
+item.setHoverName(`召唤烈焰阵,烈焰阵半径${radius},等待时间${radius * 5 - 10}`);
+if (player.isShiftKeyDown()) {
+radius += 0.2;
+item.setHoverName(`召唤烈焰阵,烈焰阵半径${radius},等待时间${radius * 5 - 10}`);
+return;
+}
+var flameStrike = level.createEntity("cataclysm:flame_strike") ;
+flameStrike.mergeNbt(`{WaitTime:${radius * 5 - 10},Duration:100,damage:20}`); //need confirm
+flameStrike.mergeNbt(`{Radius:${radius}}`);
+if (hit != null) {
+flameStrike.setPos(hit.x(),hit.y(),hit.z());
+} else {
+flameStrike.setPos(player.x,player.y,player.z);
+}
+level.addFreshEntity(flameStrike);
+}
+if (item.id == "minecraft:gray_dye") {
+item.setHoverName(`效果无效(自我)`);
+server.runCommandSilent(`/effect clear ${String(player.username)}`)
+}
+if (item.id == "minecraft:red_dye") {
+item.setHoverName(`召唤追踪烈焰阵`);
+var flameStrike = level.createEntity("cataclysm:flame_strike") ;
+flameStrike.mergeNbt(`{WaitTime:0,Duration:0,damage:20}`); //need confirm
+flameStrike.mergeNbt(`{Radius:5}`);
+flameStrike.persistentData.merge(`{Tracking:1}`)
+hasTrackingStrike = true;
+if (hit != null) {
+flameStrike.setPos(hit.x(),hit.y(),hit.z());
+} else {
+flameStrike.setPos(player.x,player.y,player.z);
+}
+level.addFreshEntity(flameStrike);
+}
+}
 })
 
 ItemEvents.firstLeftClicked(event => {
-    const {item,player,server,hand,target,level} = event;
-    if (hand != "MAIN_HAND") return;
-    if (player.username == "Fugit_5414") {
-        if (item.id == "minecraft:white_dye") {
-            if (player.isShiftKeyDown()) {
-                accelerationScale -= 0.01;
-                item.setHoverName(`召唤火球,火球速度${accelerationScale}`);
-                return;
-            } else {
-                var nearPlayer = level.getEntitiesWithin(AABB.of(player.x - 40,player.y - 5 ,player.z - 40,player.x + 40,player.y + 20,player.z + 40)).filter(entity => entity.type == "minecraft:player");
-                if (nearPlayer.size() <= 1) {
-                    player.tell(`附近没有玩家,无法召唤火球`);
-                    return;
-                }
-                nearPlayer.forEach(aplayer => {
-                    if (player == aplayer) {
+const {item,player,server,hand,target,level} = event;
+if (hand != "MAIN_HAND") return;
+if (player.username == "Fugit_5414") {
+if (item.id == "minecraft:white_dye") {
+if (player.isShiftKeyDown()) {
+accelerationScale -= 0.01;
+item.setHoverName(`召唤火球,火球速度${accelerationScale}`);
+return;
+} else {
+var nearPlayer = level.getEntitiesWithin(AABB.of(player.x - 40,player.y - 5 ,player.z - 40,player.x + 40,player.y + 20,player.z + 40)).filter(entity => entity.type == "minecraft:player");
+if (nearPlayer.size() <= 1) {
+    player.tell(`附近没有玩家,无法召唤火球`);
+    return;
+}
+nearPlayer.forEach(aplayer => {
+    if (player == aplayer) {
 
-                    } else {
-                        var predictNextPosition = function (p,delta) {
-                            var pos0 = p.position();
-                            var pos1 = p.position().add((new Vec3d(0,delta,0)));
-                            var pos2 = p.position().add((new Vec3d(0,-delta,0)));
-                            var pos3 = p.position().add((new Vec3d(-delta,0,-delta)));
-                            var pos4 = p.position().add((new Vec3d(delta,0,delta)));
-                            var pos5 = p.position().add((new Vec3d(delta,0,-delta)));
-                            var pos6 = p.position().add((new Vec3d(-delta,0,delta)));
-                            var posArr = [pos0,pos1,pos2,pos3,pos4,pos5,pos6];
-                            return posArr;
-                        }
-                        /**
-                         * @param {Vec3d} vec3d 
-                         * @returns {[]}
-                         */
-                        /*var vec3dToArray = function (vec3d) {
-                            var x = vec3d.x();
-                            var y = vec3d.y();
-                            var z = vec3d.z();
-                            return [x,y,z];
-                        }
-                        var playerPosArr = predictNextPosition(player,random.nextDouble(6));
-                        for(var i = 0;i < 7;i ++){
-                            var fireball = level.createEntity("cataclysm:ignis_fireball");
-                            fireball.setPos(player.position().add((new Vec3d(0,6,0))));
-                            var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
-                            var slowDirection = direction.scale(accelerationScale); //scale 点乘
-                            var power = "[" + vec3dToArray(slowDirection).toString() + "]";
-                            fireball.mergeNbt(`{timer:-100,power:${power}}`)
-                            level.addFreshEntity(fireball);
-                        }
-                        server.scheduleInTicks(10,() => {
-                            let playerPosArr = predictNextPosition(player,random.nextDouble(6));
-                            for(var i = 0;i < 7;i ++){
-                                var fireball = level.createEntity("cataclysm:ignis_fireball");
-                                fireball.setPos(player.position().add((new Vec3d(0,6,0))));
-                                var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
-                                var slowDirection = direction.scale(accelerationScale); //scale 点乘
-                                var power = "[" + vec3dToArray(slowDirection).toString() + "]";
-                                fireball.mergeNbt(`{timer:-100,power:${power}}`)
-                                level.addFreshEntity(fireball);
-                            }
-                        })
-                    }
-                })
-            }   
+    } else {
+        var predictNextPosition = function (p,delta) {
+            var pos0 = p.position();
+            var pos1 = p.position().add((new Vec3d(0,delta,0)));
+            var pos2 = p.position().add((new Vec3d(0,-delta,0)));
+            var pos3 = p.position().add((new Vec3d(-delta,0,-delta)));
+            var pos4 = p.position().add((new Vec3d(delta,0,delta)));
+            var pos5 = p.position().add((new Vec3d(delta,0,-delta)));
+            var pos6 = p.position().add((new Vec3d(-delta,0,delta)));
+            var posArr = [pos0,pos1,pos2,pos3,pos4,pos5,pos6];
+            return posArr;
         }
-        if (item.id == "minecraft:purple_dye") {
-            item.setHoverName(`瞬间移动`);
-            var nearPlayer = level.getNearestPlayer(
-                player.x, player.y, player.z, 50, 
-                p => p != player && !p.isSpectator() //在场地内并且不是旁观的(并且在boss50m内的)玩家
-            );
-            if (nearPlayer == null) {
-                player.tell("未找到玩家,无法传送");
-                return;
-            }
-            server.runCommandSilent(`execute as ${String(nearPlayer.username)} run tp Fugit_5414 ^ ^ ^-1`);
-        }   
-        if (item.id == "minecraft:orange_dye") { //接近瞬移了,需要调整
-            item.setHoverName(`召唤烈焰阵,烈焰阵半径${radius},等待时间${radius * 5 - 10}`);
-            if (player.isShiftKeyDown()) {
-                radius -= 0.2;
-                item.setHoverName(`召唤烈焰阵,烈焰阵半径${radius},等待时间${radius * 5 - 10}`);
-                return;
-            } else {
-                var nearPlayer = level.getEntitiesWithin(AABB.of(player.x - 40,player.y - 5 ,player.z - 40,player.x + 40,player.y + 20,player.z + 40)).filter(entity => entity.type == "minecraft:player");
-                if (nearPlayer.size() <= 1) {
-                    player.tell(`附近没有玩家,无法召唤烈焰阵`);
-                    return;
-                }
-                nearPlayer.forEach(aplayer => {
-                    if (player == aplayer) {
-                     
-                    } else {
-                        var flameStrike = level.createEntity("cataclysm:flame_strike") ;
-                        flameStrike.mergeNbt(`{WaitTime:${radius * 5 - 10},Duration:100,damage:20}`); //need confirm
-                        flameStrike.mergeNbt(`{Radius:${radius}}`);
-                        flameStrike.setPos(player.position());
-                        level.addFreshEntity(flameStrike);
-                    }
-                })
-            }
-        }
-        if (item.id == "minecraft:gray_dye") {
-            item.setHoverName(`效果无效(他人)`);
-            var nearPlayer = level.getEntitiesWithin(AABB.of(player.x - 40,player.y - 5 ,player.z - 40,player.x + 40,player.y + 20,player.z + 40)).filter(entity => entity.type == "minecraft:player");
-            if (nearPlayer.size() <= 1) {
-                player.tell(`附近没有玩家,无法清除他们身上的效果`);
-                return;
-            }
-            nearPlayer.forEach(aplayer => {
-                if (player == aplayer) {
-                    
-                } else {
-                    server.runCommandSilent(`/effect clear ${String(aplayer.username)}`)
-                }
-            })
-        }
-        if (item.id == "minecraft:red_dye") {
-            item.setHoverName(`销毁跟踪烈焰阵`);
-            var flame_strikes = server.entities.filter(entity => entity.type == "cataclysm:flame_strike");
-            var tracking_FS = flame_strikes.filter(strike => strike.persistentData.getInt("Tracking") != 0);
-            var count = 0;
-            tracking_FS.forEach(tracking_fs => {
-                tracking_fs.discard();
-                count++;
-            })
-            player.tell(`销毁了${count}个跟踪烈焰阵`);
-            hasTrackingStrike = false
-        }
+        /**
+         * @param {Vec3d} vec3d 
+         * @returns {[]}
+         */
+/*var vec3dToArray = function (vec3d) {
+    var x = vec3d.x();
+    var y = vec3d.y();
+    var z = vec3d.z();
+    return [x,y,z];
+}
+var playerPosArr = predictNextPosition(player,random.nextDouble(6));
+for(var i = 0;i < 7;i ++){
+    var fireball = level.createEntity("cataclysm:ignis_fireball");
+    fireball.setPos(player.position().add((new Vec3d(0,6,0))));
+    var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
+    var slowDirection = direction.scale(accelerationScale); //scale 点乘
+    var power = "[" + vec3dToArray(slowDirection).toString() + "]";
+    fireball.mergeNbt(`{timer:-100,power:${power}}`)
+    level.addFreshEntity(fireball);
+}
+server.scheduleInTicks(10,() => {
+    let playerPosArr = predictNextPosition(player,random.nextDouble(6));
+    for(var i = 0;i < 7;i ++){
+        var fireball = level.createEntity("cataclysm:ignis_fireball");
+        fireball.setPos(player.position().add((new Vec3d(0,6,0))));
+        var direction = playerPosArr[i].subtract(fireball.position()).normalize(); //subtract 减法  //normalize 标准化(单位向量)
+        var slowDirection = direction.scale(accelerationScale); //scale 点乘
+        var power = "[" + vec3dToArray(slowDirection).toString() + "]";
+        fireball.mergeNbt(`{timer:-100,power:${power}}`)
+        level.addFreshEntity(fireball);
     }
+})
+}
+})
+}   
+}
+if (item.id == "minecraft:purple_dye") {
+item.setHoverName(`瞬间移动`);
+var nearPlayer = level.getNearestPlayer(
+player.x, player.y, player.z, 50, 
+p => p != player && !p.isSpectator() //在场地内并且不是旁观的(并且在boss50m内的)玩家
+);
+if (nearPlayer == null) {
+player.tell("未找到玩家,无法传送");
+return;
+}
+server.runCommandSilent(`execute as ${String(nearPlayer.username)} run tp Fugit_5414 ^ ^ ^-1`);
+}   
+if (item.id == "minecraft:orange_dye") { //接近瞬移了,需要调整
+item.setHoverName(`召唤烈焰阵,烈焰阵半径${radius},等待时间${radius * 5 - 10}`);
+if (player.isShiftKeyDown()) {
+radius -= 0.2;
+item.setHoverName(`召唤烈焰阵,烈焰阵半径${radius},等待时间${radius * 5 - 10}`);
+return;
+} else {
+var nearPlayer = level.getEntitiesWithin(AABB.of(player.x - 40,player.y - 5 ,player.z - 40,player.x + 40,player.y + 20,player.z + 40)).filter(entity => entity.type == "minecraft:player");
+if (nearPlayer.size() <= 1) {
+player.tell(`附近没有玩家,无法召唤烈焰阵`);
+return;
+}
+nearPlayer.forEach(aplayer => {
+if (player == aplayer) {
+ 
+} else {
+var flameStrike = level.createEntity("cataclysm:flame_strike") ;
+flameStrike.mergeNbt(`{WaitTime:${radius * 5 - 10},Duration:100,damage:20}`); //need confirm
+flameStrike.mergeNbt(`{Radius:${radius}}`);
+flameStrike.setPos(player.position());
+level.addFreshEntity(flameStrike);
+}
+})
+}
+}
+if (item.id == "minecraft:gray_dye") {
+item.setHoverName(`效果无效(他人)`);
+var nearPlayer = level.getEntitiesWithin(AABB.of(player.x - 40,player.y - 5 ,player.z - 40,player.x + 40,player.y + 20,player.z + 40)).filter(entity => entity.type == "minecraft:player");
+if (nearPlayer.size() <= 1) {
+player.tell(`附近没有玩家,无法清除他们身上的效果`);
+return;
+}
+nearPlayer.forEach(aplayer => {
+if (player == aplayer) {
+ 
+} else {
+server.runCommandSilent(`/effect clear ${String(aplayer.username)}`)
+}
+})
+}
+if (item.id == "minecraft:red_dye") {
+item.setHoverName(`销毁跟踪烈焰阵`);
+var flame_strikes = server.entities.filter(entity => entity.type == "cataclysm:flame_strike");
+var tracking_FS = flame_strikes.filter(strike => strike.persistentData.getInt("Tracking") != 0);
+var count = 0;
+tracking_FS.forEach(tracking_fs => {
+tracking_fs.discard();
+count++;
+})
+player.tell(`销毁了${count}个跟踪烈焰阵`);
+hasTrackingStrike = false
+}
+}
 })
 
 LevelEvents.tick(event => {
-    const {server,level} = event;
-    server.entities.forEach(entity => {
-        entity.setInvulnerable(false);
-    })
-    if (level.isOverworld()) {
-        if (server.tickCount % 100 == 0) {
-            var ft = server.playerList.getPlayerByName(`Fugit_5414`);
-            //ft.persistentData.merge({isBoss:1});
-            ft.persistentData.remove(`isBoss`);
-        }
-        if (hasTrackingStrike) {
-            var flame_strikes = server.entities.filter(entity => entity.type == "cataclysm:flame_strike");
-            var tracking_FS = flame_strikes.filter(strike => strike.persistentData.getInt("Tracking") != 0);
-            if (tracking_FS.isEmpty()) return;
-            tracking_FS.forEach(tracking_fs => {
-                tracking_fs.mergeNbt(`{Radius:5}`)
-                var nearPlayer = level.getNearestPlayer(
-                    tracking_fs.x, tracking_fs.y, tracking_fs.z, 50, 
-                    p => String(p.username) != "Fugit_5414" && !p.isSpectator() && p.y > -41 //在场地内并且不是旁观的(并且在boss50m内的)玩家
-                );
-                if (nearPlayer == null) {
-                    return;
-                } else {
-                    /**@type {Internal.Vec3d} */
-                    /*var PlayerVec3d = nearPlayer.position();
-                    /**@type {Internal.Vec3d} */
-                    /*var tpVec3d = PlayerVec3d.subtract(tracking_fs.position());
-                    /**@type {Internal.Vec3d} */
-                    /*var noramlTpVec3d = tpVec3d.normalize();
-                    /**@type {Internal.Vec3d} */
-                    /*var slowVec3d = noramlTpVec3d.scale(0.7);
-                    tracking_fs.setPos(slowVec3d.x() + tracking_fs.x,slowVec3d.y() + tracking_fs.y,slowVec3d.z() + tracking_fs.z);
-                }
-            })
-        }
-    }
+const {server,level} = event;
+server.entities.forEach(entity => {
+entity.setInvulnerable(false);
+})
+if (level.isOverworld()) {
+if (server.tickCount % 100 == 0) {
+var ft = server.playerList.getPlayerByName(`Fugit_5414`);
+//ft.persistentData.merge({isBoss:1});
+ft.persistentData.remove(`isBoss`);
+}
+if (hasTrackingStrike) {
+var flame_strikes = server.entities.filter(entity => entity.type == "cataclysm:flame_strike");
+var tracking_FS = flame_strikes.filter(strike => strike.persistentData.getInt("Tracking") != 0);
+if (tracking_FS.isEmpty()) return;
+tracking_FS.forEach(tracking_fs => {
+tracking_fs.mergeNbt(`{Radius:5}`)
+var nearPlayer = level.getNearestPlayer(
+tracking_fs.x, tracking_fs.y, tracking_fs.z, 50, 
+p => String(p.username) != "Fugit_5414" && !p.isSpectator() && p.y > -41 //在场地内并且不是旁观的(并且在boss50m内的)玩家
+);
+if (nearPlayer == null) {
+return;
+} else {
+/**@type {Internal.Vec3d} */
+/*var PlayerVec3d = nearPlayer.position();
+/**@type {Internal.Vec3d} */
+/*var tpVec3d = PlayerVec3d.subtract(tracking_fs.position());
+/**@type {Internal.Vec3d} */
+/*var noramlTpVec3d = tpVec3d.normalize();
+/**@type {Internal.Vec3d} */
+/*var slowVec3d = noramlTpVec3d.scale(0.7);
+tracking_fs.setPos(slowVec3d.x() + tracking_fs.x,slowVec3d.y() + tracking_fs.y,slowVec3d.z() + tracking_fs.z);
+}
+})
+}
+}
 })
 
 EntityEvents.hurt(event => {
-    const {damage,entity,source,server,level} = event;
-    if (entity.isPlayer() && source.actual != null) {
-        if (String(entity.username) != "Fugit_5414") {
-            server.runCommandSilent(`damage ${String(entity.username)} ${damage * 0.3} minecraft:out_of_world`);
-            if (!debuffLock.has(playerName)) {
-                var addDebuffFlag = true;
-                if (addDebuffFlag) {
-                    var randomIndex1 = random.nextInt(5);
-                    var randomIndex2 = random.nextInt(5);
-                    while (randomIndex1 == randomIndex2) {
-                        randomIndex2 = random.nextInt(5);
-                    }
-                    entity.addEffect(new MobEffectInstance(debuffType[randomIndex1].id,debuffType[randomIndex1].duration,debuffType[randomIndex1].lvl,false,false));
-                    entity.addEffect(new MobEffectInstance(debuffType[randomIndex2].id,debuffType[randomIndex2].duration,debuffType[randomIndex2].lvl,false,false));
-                    debuffLock.set(playerName,true);
-                    server.scheduleInTicks(20,() => {
-                        debuffLock.delete(playerName);
-                    })
-                }
-            }
-            event.cancel();
-        }
-    }
+const {damage,entity,source,server,level} = event;
+if (entity.isPlayer() && source.actual != null) {
+if (String(entity.username) != "Fugit_5414") {
+server.runCommandSilent(`damage ${String(entity.username)} ${damage * 0.3} minecraft:out_of_world`);
+if (!debuffLock.has(playerName)) {
+var addDebuffFlag = true;
+if (addDebuffFlag) {
+var randomIndex1 = random.nextInt(5);
+var randomIndex2 = random.nextInt(5);
+while (randomIndex1 == randomIndex2) {
+    randomIndex2 = random.nextInt(5);
+}
+entity.addEffect(new MobEffectInstance(debuffType[randomIndex1].id,debuffType[randomIndex1].duration,debuffType[randomIndex1].lvl,false,false));
+entity.addEffect(new MobEffectInstance(debuffType[randomIndex2].id,debuffType[randomIndex2].duration,debuffType[randomIndex2].lvl,false,false));
+debuffLock.set(playerName,true);
+server.scheduleInTicks(20,() => {
+    debuffLock.delete(playerName);
+})
+}
+}
+event.cancel();
+}
+}
 })
 
 ItemEvents.entityInteracted("minecraft:snow_block",event => {
-    const {server,entity,target} = event;
-    if (String(entity.username) == "Fugit_5414") {
-        entity.setInvulnerable(false);
-        target.setInvulnerable(false);
-    }
+const {server,entity,target} = event;
+if (String(entity.username) == "Fugit_5414") {
+entity.setInvulnerable(false);
+target.setInvulnerable(false);
+}
 })*/
 
